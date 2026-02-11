@@ -1,0 +1,55 @@
+{
+  "name": "@samik081/mcp-pve",
+  "version": "0.1.0",
+  "description": "MCP server for Proxmox VE — manage virtual machines, containers, storage, networking, and clusters through AI coding tools",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "mcp-pve": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "node --watch --experimental-strip-types src/index.ts",
+    "inspect": "npm run build && npx @modelcontextprotocol/inspector node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "proxmox",
+    "pve",
+    "mcp",
+    "model-context-protocol",
+    "virtualization",
+    "ai",
+    "llm",
+    "claude"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Samik081/mcp-pve.git"
+  },
+  "homepage": "https://github.com/Samik081/mcp-pve#readme",
+  "bugs": {
+    "url": "https://github.com/Samik081/mcp-pve/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "~5.9.3"
+  }
+}
