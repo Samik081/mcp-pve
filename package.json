@@ -1,6 +1,6 @@
 {
   "name": "@samik081/mcp-pve",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for Proxmox VE — manage virtual machines, containers, storage, networking, and clusters through AI coding tools",
   "type": "module",
   "main": "./dist/index.js",
