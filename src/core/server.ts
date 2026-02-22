@@ -8,6 +8,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { logger } from "./logger.js";
+import pkg from "../../package.json" with { type: "json" };
 
 /**
  * Create a new MCP server instance.
@@ -16,7 +17,7 @@ export function createServer(): McpServer {
   return new McpServer(
     {
       name: "mcp-pve",
-      version: "0.1.0",
+      version: pkg.version,
     },
     {
       capabilities: {
