@@ -1,4 +1,5 @@
 [![npm version](https://img.shields.io/npm/v/@samik081/mcp-pve)](https://www.npmjs.com/package/@samik081/mcp-pve)
+[![Docker image](https://ghcr-badge.egpl.dev/samik081/mcp-pve/latest_tag?trim=major&label=docker)](https://ghcr.io/samik081/mcp-pve)
 [![License: MIT](https://img.shields.io/npm/l/@samik081/mcp-pve)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/node/v/@samik081/mcp-pve)](https://nodejs.org)
 
@@ -15,6 +16,8 @@ MCP server for [Proxmox VE](https://www.proxmox.com/en/proxmox-virtual-environme
 - **Category filtering** via `PVE_CATEGORIES` to expose only the tools you need
 - **Zero HTTP dependencies** -- uses native `fetch` (Node 18+)
 - **Self-signed cert support** via `PVE_VERIFY_SSL=false`
+- **Docker images** for `linux/amd64` and `linux/arm64` on [GHCR](https://ghcr.io/samik081/mcp-pve)
+- **Remote MCP** via HTTP transport (`MCP_TRANSPORT=http`) using the Streamable HTTP protocol
 - **TypeScript/ESM** with full type safety
 
 ## Quick Start
@@ -30,17 +33,53 @@ npx -y @samik081/mcp-pve
 
 The server validates your PVE connection on startup and fails immediately with a clear error if credentials are missing or invalid.
 
+### Docker
+
+Run with Docker (stdio transport, same as npx):
+
+```bash
+docker run --rm -i \
+  -e PVE_BASE_URL=https://pve.example.com:8006 \
+  -e PVE_TOKEN_ID=root@pam!mcp \
+  -e PVE_TOKEN_SECRET=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \
+  -e PVE_VERIFY_SSL=false \
+  ghcr.io/samik081/mcp-pve
+```
+
+To run as a remote MCP server with HTTP transport:
+
+```bash
+docker run -d -p 3000:3000 \
+  -e MCP_TRANSPORT=http \
+  -e PVE_BASE_URL=https://pve.example.com:8006 \
+  -e PVE_TOKEN_ID=root@pam!mcp \
+  -e PVE_TOKEN_SECRET=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \
+  -e PVE_VERIFY_SSL=false \
+  ghcr.io/samik081/mcp-pve
+```
+
+The MCP endpoint is available at `http://localhost:3000/mcp` and a health check at `http://localhost:3000/health`.
+
 ## Configuration
 
 **Claude Code CLI (recommended):**
 
 ```bash
+# Using npx
 claude mcp add --transport stdio pve \
   --env PVE_BASE_URL=https://pve.example.com:8006 \
   --env PVE_TOKEN_ID=root@pam!mcp \
   --env PVE_TOKEN_SECRET=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \
   --env PVE_VERIFY_SSL=false \
   -- npx -y @samik081/mcp-pve
+
+# Using Docker
+claude mcp add --transport stdio pve \
+  --env PVE_BASE_URL=https://pve.example.com:8006 \
+  --env PVE_TOKEN_ID=root@pam!mcp \
+  --env PVE_TOKEN_SECRET=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \
+  --env PVE_VERIFY_SSL=false \
+  -- docker run --rm -i ghcr.io/samik081/mcp-pve
 ```
 
 **JSON config** (works with Claude Code `.mcp.json`, Claude Desktop `claude_desktop_config.json`, Cursor `.cursor/mcp.json`):
@@ -57,6 +96,38 @@ claude mcp add --transport stdio pve \
         "PVE_TOKEN_SECRET": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
         "PVE_VERIFY_SSL": "false"
       }
+    }
+  }
+}
+```
+
+**Docker (stdio):**
+
+```json
+{
+  "mcpServers": {
+    "pve": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i",
+        "-e", "PVE_BASE_URL=https://pve.example.com:8006",
+        "-e", "PVE_TOKEN_ID=root@pam!mcp",
+        "-e", "PVE_TOKEN_SECRET=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "-e", "PVE_VERIFY_SSL=false",
+        "ghcr.io/samik081/mcp-pve"
+      ]
+    }
+  }
+}
+```
+
+**Remote MCP** (connect to a running Docker container or HTTP server):
+
+```json
+{
+  "mcpServers": {
+    "pve": {
+      "type": "streamable-http",
+      "url": "http://localhost:3000/mcp"
     }
   }
 }
@@ -91,6 +162,9 @@ Tools that are not available in your tier are not registered with the MCP server
 | `PVE_CATEGORIES` | No | all | Comma-separated category allowlist |
 | `PVE_VERIFY_SSL` | No | `true` | Set `false` for self-signed certs |
 | `DEBUG` | No | — | Set to any value to enable debug logging to stderr |
+| `MCP_TRANSPORT` | No | `stdio` | Transport mode: `stdio` (default) or `http` |
+| `MCP_PORT` | No | `3000` | HTTP server port (only used when `MCP_TRANSPORT=http`) |
+| `MCP_HOST` | No | `0.0.0.0` | HTTP server bind address (only used when `MCP_TRANSPORT=http`) |
 
 Create API tokens in the PVE UI under **Datacenter > Permissions > API Tokens**. Make sure to uncheck "Privilege Separation" if you want the token to inherit the user's full permissions.
 

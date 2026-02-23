@@ -53,7 +53,7 @@ async function main(): Promise<void> {
 
   const server = createServer();
   registerAllTools(server, client, config);
-  await startServer(server);
+  await startServer(server, config);
 }
 
 main().catch((error) => {
