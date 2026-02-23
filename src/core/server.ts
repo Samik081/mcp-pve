@@ -91,7 +91,7 @@ async function startHttpServer(
         return;
       }
 
-      if (url === "/mcp") {
+      if (url === "/") {
         try {
           if (req.method === "POST") {
             const body = await parseJsonBody(req);
@@ -112,15 +112,15 @@ async function startHttpServer(
         return;
       }
 
-      res.writeHead(404);
-      res.end("Not found");
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Not found" }));
     },
   );
 
   await new Promise<void>((resolve, reject) => {
     httpServer.listen(httpPort, httpHost, () => {
       logger.info(
-        `${SERVER_NAME} v${pkg.version} listening on http://${httpHost}:${httpPort}/mcp`,
+        `${SERVER_NAME} v${pkg.version} listening on http://${httpHost}:${httpPort}`,
       );
       resolve();
     });

@@ -58,7 +58,7 @@ docker run -d -p 3000:3000 \
   ghcr.io/samik081/mcp-pve
 ```
 
-The MCP endpoint is available at `http://localhost:3000/mcp` and a health check at `http://localhost:3000/health`.
+The MCP endpoint is available at `http://localhost:3000` and a health check at `http://localhost:3000/health`.
 
 ## Configuration
 
@@ -80,6 +80,9 @@ claude mcp add --transport stdio pve \
   --env PVE_TOKEN_SECRET=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \
   --env PVE_VERIFY_SSL=false \
   -- docker run --rm -i ghcr.io/samik081/mcp-pve
+
+# Using remote HTTP (connect to a running Docker container or HTTP server)
+claude mcp add --transport http pve http://localhost:3000
 ```
 
 **JSON config** (works with Claude Code `.mcp.json`, Claude Desktop `claude_desktop_config.json`, Cursor `.cursor/mcp.json`):
@@ -127,7 +130,7 @@ claude mcp add --transport stdio pve \
   "mcpServers": {
     "pve": {
       "type": "streamable-http",
-      "url": "http://localhost:3000/mcp"
+      "url": "http://localhost:3000"
     }
   }
 }
