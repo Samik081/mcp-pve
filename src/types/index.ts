@@ -51,4 +51,7 @@ export interface AppConfig {
   categories: string[] | null;
   verifySsl: boolean;
   debug: boolean;
+  transport: "stdio" | "http";
+  httpPort: number;
+  httpHost: string;
 }
