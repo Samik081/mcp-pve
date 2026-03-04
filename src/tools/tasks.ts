@@ -21,6 +21,7 @@ export function registerTaskTools(
       "List recent tasks on a node with optional filters for status, source, and VMID",
     category: "tasks",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       start: z
@@ -58,6 +59,7 @@ export function registerTaskTools(
     description: "Get the status of a specific task by its UPID",
     category: "tasks",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       upid: z.string().describe("The task UPID"),
@@ -75,6 +77,7 @@ export function registerTaskTools(
     description: "Get the log output of a specific task by its UPID",
     category: "tasks",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       upid: z.string().describe("The task UPID"),
@@ -105,6 +108,7 @@ export function registerTaskTools(
     description: "Stop a running task by its UPID",
     category: "tasks",
     accessTier: "read-execute",
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
     inputSchema: {
       node: z.string().describe("The node name"),
       upid: z.string().describe("The task UPID to stop"),

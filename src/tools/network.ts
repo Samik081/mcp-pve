@@ -20,6 +20,7 @@ export function registerNetworkTools(
     description: "List all network interfaces on a specific node",
     category: "network",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       type: z
@@ -40,6 +41,7 @@ export function registerNetworkTools(
     description: "Get the configuration of a specific network interface on a node",
     category: "network",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       iface: z.string().describe("The interface name (e.g. vmbr0, eth0)"),
@@ -59,6 +61,7 @@ export function registerNetworkTools(
     description: "Create a new network interface on a node",
     category: "network",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     inputSchema: {
       node: z.string().describe("The node name"),
       iface: z.string().describe("The interface name (e.g. vmbr1)"),
@@ -108,6 +111,7 @@ export function registerNetworkTools(
     description: "Update the configuration of a network interface on a node",
     category: "network",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       iface: z.string().describe("The interface name"),
@@ -148,7 +152,7 @@ export function registerNetworkTools(
     description: "Delete a network interface configuration on a node",
     category: "network",
     accessTier: "full",
-    annotations: { destructiveHint: true },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
     inputSchema: {
       node: z.string().describe("The node name"),
       iface: z.string().describe("The interface name to delete"),

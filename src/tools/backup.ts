@@ -20,6 +20,7 @@ export function registerBackupTools(
     description: "List all scheduled backup jobs in the cluster",
     category: "backup",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/cluster/backup");
       return JSON.stringify(data, null, 2);
@@ -31,6 +32,7 @@ export function registerBackupTools(
     description: "Get the configuration of a specific backup job",
     category: "backup",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       id: z.string().describe("The backup job ID"),
     },
@@ -48,6 +50,7 @@ export function registerBackupTools(
       "Run an immediate backup (vzdump) of one or more VMs/containers on a node",
     category: "backup",
     accessTier: "read-execute",
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z
@@ -96,6 +99,7 @@ export function registerBackupTools(
     description: "Create a new scheduled backup job",
     category: "backup",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     inputSchema: {
       vmid: z
         .string()
@@ -166,7 +170,7 @@ export function registerBackupTools(
     description: "Delete a scheduled backup job",
     category: "backup",
     accessTier: "full",
-    annotations: { destructiveHint: true },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
     inputSchema: {
       id: z.string().describe("The backup job ID to delete"),
     },

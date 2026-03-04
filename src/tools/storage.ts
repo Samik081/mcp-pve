@@ -20,6 +20,7 @@ export function registerStorageTools(
     description: "List all configured storage backends in the cluster",
     category: "storage",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       type: z
         .string()
@@ -39,6 +40,7 @@ export function registerStorageTools(
     description: "Get the configuration of a specific storage backend",
     category: "storage",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       storage: z.string().describe("The storage ID"),
     },
@@ -53,6 +55,7 @@ export function registerStorageTools(
     description: "List available storage on a specific node with usage information",
     category: "storage",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       content: z
@@ -73,6 +76,7 @@ export function registerStorageTools(
     description: "Get the status and usage of a specific storage on a node",
     category: "storage",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       storage: z.string().describe("The storage ID"),
@@ -91,6 +95,7 @@ export function registerStorageTools(
       "List the content (disk images, ISOs, templates, backups) of a specific storage on a node",
     category: "storage",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       storage: z.string().describe("The storage ID"),
@@ -114,6 +119,7 @@ export function registerStorageTools(
     description: "Create a new storage backend in the cluster",
     category: "storage",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     inputSchema: {
       storage: z.string().describe("The storage ID"),
       type: z
@@ -175,6 +181,7 @@ export function registerStorageTools(
     description: "Update the configuration of an existing storage backend",
     category: "storage",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     inputSchema: {
       storage: z.string().describe("The storage ID"),
       content: z
@@ -210,7 +217,7 @@ export function registerStorageTools(
     description: "Delete a storage backend configuration from the cluster",
     category: "storage",
     accessTier: "full",
-    annotations: { destructiveHint: true },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
     inputSchema: {
       storage: z.string().describe("The storage ID to delete"),
     },

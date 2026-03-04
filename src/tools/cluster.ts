@@ -20,6 +20,7 @@ export function registerClusterTools(
     description: "Get the current cluster status including node membership and quorum",
     category: "cluster",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/cluster/status");
       return JSON.stringify(data, null, 2);
@@ -32,6 +33,7 @@ export function registerClusterTools(
       "List all cluster resources (VMs, containers, storage, nodes) with optional type filter",
     category: "cluster",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       type: z
         .enum(["vm", "storage", "node", "sdn"])
@@ -51,6 +53,7 @@ export function registerClusterTools(
     description: "Get the next available VMID in the cluster",
     category: "cluster",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/cluster/nextid");
       return `Next available VMID: ${data}`;
@@ -62,6 +65,7 @@ export function registerClusterTools(
     description: "Get recent cluster log entries",
     category: "cluster",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       max: z
         .number()
@@ -81,6 +85,7 @@ export function registerClusterTools(
     description: "Get cluster-wide datacenter options",
     category: "cluster",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/cluster/options");
       return JSON.stringify(data, null, 2);
@@ -92,6 +97,7 @@ export function registerClusterTools(
     description: "List guests that are not covered by any backup job",
     category: "cluster",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/cluster/backup-info/not-backed-up");
       return JSON.stringify(data, null, 2);
@@ -103,6 +109,7 @@ export function registerClusterTools(
     description: "Get the current HA manager status",
     category: "cluster",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/cluster/ha/status/current");
       return JSON.stringify(data, null, 2);
@@ -114,6 +121,7 @@ export function registerClusterTools(
     description: "List all replication jobs in the cluster",
     category: "cluster",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/cluster/replication");
       return JSON.stringify(data, null, 2);
@@ -127,6 +135,7 @@ export function registerClusterTools(
     description: "Update cluster-wide datacenter options",
     category: "cluster",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     inputSchema: {
       keyboard: z
         .string()

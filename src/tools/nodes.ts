@@ -20,6 +20,7 @@ export function registerNodeTools(
     description: "List all nodes in the Proxmox VE cluster",
     category: "nodes",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/nodes");
       return JSON.stringify(data, null, 2);
@@ -32,6 +33,7 @@ export function registerNodeTools(
       "Get detailed status of a specific node including CPU, memory, uptime, and load",
     category: "nodes",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
     },
@@ -46,6 +48,7 @@ export function registerNodeTools(
     description: "Get the PVE version information for a specific node",
     category: "nodes",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
     },
@@ -60,6 +63,7 @@ export function registerNodeTools(
     description: "Get DNS settings for a specific node",
     category: "nodes",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
     },
@@ -74,6 +78,7 @@ export function registerNodeTools(
     description: "Get time and timezone information for a specific node",
     category: "nodes",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
     },
@@ -88,6 +93,7 @@ export function registerNodeTools(
     description: "Get system log entries from a specific node",
     category: "nodes",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       start: z
@@ -117,6 +123,7 @@ export function registerNodeTools(
       "List all system services and their status on a specific node",
     category: "nodes",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
     },
@@ -134,6 +141,7 @@ export function registerNodeTools(
       "Start, stop, restart, or reload a system service on a specific node",
     category: "nodes",
     accessTier: "read-execute",
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
     inputSchema: {
       node: z.string().describe("The node name"),
       service: z.string().describe("The service name (e.g. pveproxy, pvedaemon)"),
