@@ -22,6 +22,7 @@ export function registerHaTools(
     description: "List all HA-managed resources in the cluster",
     category: "ha",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       type: z
         .enum(["vm", "ct"])
@@ -42,6 +43,7 @@ export function registerHaTools(
       "Get the HA configuration for a specific resource. SID format: type:vmid (e.g. vm:100)",
     category: "ha",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       sid: z
         .string()
@@ -63,6 +65,7 @@ export function registerHaTools(
       "Add a VM or container to HA management. SID format: type:vmid (e.g. vm:100)",
     category: "ha",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     inputSchema: {
       sid: z.string().describe("The resource SID (e.g. vm:100, ct:200)"),
       group: z
@@ -100,6 +103,7 @@ export function registerHaTools(
     description: "Update the HA configuration for an existing managed resource",
     category: "ha",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     inputSchema: {
       sid: z.string().describe("The resource SID (e.g. vm:100, ct:200)"),
       group: z.string().optional().describe("HA group name"),
@@ -138,7 +142,7 @@ export function registerHaTools(
       "Remove a VM or container from HA management (does not delete the VM/container itself)",
     category: "ha",
     accessTier: "full",
-    annotations: { destructiveHint: true },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
     inputSchema: {
       sid: z.string().describe("The resource SID to remove (e.g. vm:100)"),
     },

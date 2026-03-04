@@ -20,6 +20,7 @@ export function registerFirewallTools(
     description: "Get the cluster-level firewall options",
     category: "firewall",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/cluster/firewall/options");
       return JSON.stringify(data, null, 2);
@@ -31,6 +32,7 @@ export function registerFirewallTools(
     description: "List all cluster-level firewall rules",
     category: "firewall",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/cluster/firewall/rules");
       return JSON.stringify(data, null, 2);
@@ -42,6 +44,7 @@ export function registerFirewallTools(
     description: "List all cluster-level firewall aliases (named IP/CIDR entries)",
     category: "firewall",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/cluster/firewall/aliases");
       return JSON.stringify(data, null, 2);
@@ -53,6 +56,7 @@ export function registerFirewallTools(
     description: "List all cluster-level firewall IP sets",
     category: "firewall",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     handler: async () => {
       const data = await client.get("/cluster/firewall/ipset");
       return JSON.stringify(data, null, 2);
@@ -66,6 +70,7 @@ export function registerFirewallTools(
     description: "Update the cluster-level firewall options (e.g. enable/disable firewall)",
     category: "firewall",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     inputSchema: {
       enable: z
         .boolean()
@@ -101,6 +106,7 @@ export function registerFirewallTools(
     description: "Create a new cluster-level firewall rule",
     category: "firewall",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     inputSchema: {
       action: z
         .enum(["ACCEPT", "DROP", "REJECT"])
@@ -159,6 +165,7 @@ export function registerFirewallTools(
     description: "Update an existing cluster-level firewall rule by position",
     category: "firewall",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     inputSchema: {
       pos: z.number().describe("Rule position (0-based index)"),
       action: z
@@ -202,7 +209,7 @@ export function registerFirewallTools(
     description: "Delete a cluster-level firewall rule by position",
     category: "firewall",
     accessTier: "full",
-    annotations: { destructiveHint: true },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
     inputSchema: {
       pos: z.number().describe("Rule position (0-based index) to delete"),
     },

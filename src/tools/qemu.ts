@@ -20,6 +20,7 @@ export function registerQemuTools(
     description: "List all QEMU virtual machines on a specific node",
     category: "qemu",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
     },
@@ -35,6 +36,7 @@ export function registerQemuTools(
       "Get the current status of a QEMU VM including CPU, memory, disk, and network usage",
     category: "qemu",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -52,6 +54,7 @@ export function registerQemuTools(
     description: "Get the configuration of a QEMU VM",
     category: "qemu",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -70,6 +73,7 @@ export function registerQemuTools(
       "Get RRD statistics (CPU, memory, disk, network) for a QEMU VM over a time period",
     category: "qemu",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -90,6 +94,7 @@ export function registerQemuTools(
     description: "List all snapshots of a QEMU VM",
     category: "qemu",
     accessTier: "read-only",
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -120,6 +125,7 @@ export function registerQemuTools(
       description: `${desc} a QEMU virtual machine`,
       category: "qemu",
       accessTier: "read-execute",
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
       inputSchema: {
         node: z.string().describe("The node name"),
         vmid: z.number().describe("The VM ID"),
@@ -138,6 +144,7 @@ export function registerQemuTools(
     description: "Migrate a QEMU VM to another node in the cluster",
     category: "qemu",
     accessTier: "read-execute",
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
     inputSchema: {
       node: z.string().describe("The source node name"),
       vmid: z.number().describe("The VM ID"),
@@ -165,6 +172,7 @@ export function registerQemuTools(
     description: "Create a new QEMU virtual machine",
     category: "qemu",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -234,7 +242,7 @@ export function registerQemuTools(
       "Delete a QEMU virtual machine and all its data. The VM must be stopped first.",
     category: "qemu",
     accessTier: "full",
-    annotations: { destructiveHint: true },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -264,6 +272,7 @@ export function registerQemuTools(
     description: "Update the configuration of a QEMU VM",
     category: "qemu",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -308,6 +317,7 @@ export function registerQemuTools(
     description: "Clone a QEMU VM to create a new VM from it",
     category: "qemu",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     inputSchema: {
       node: z.string().describe("The source node name"),
       vmid: z.number().describe("The source VM ID"),
@@ -355,6 +365,7 @@ export function registerQemuTools(
     description: "Create a snapshot of a QEMU VM",
     category: "qemu",
     accessTier: "full",
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -385,7 +396,7 @@ export function registerQemuTools(
     description: "Delete a snapshot of a QEMU VM",
     category: "qemu",
     accessTier: "full",
-    annotations: { destructiveHint: true },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -404,7 +415,7 @@ export function registerQemuTools(
     description: "Rollback a QEMU VM to a previous snapshot state",
     category: "qemu",
     accessTier: "full",
-    annotations: { destructiveHint: true },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
