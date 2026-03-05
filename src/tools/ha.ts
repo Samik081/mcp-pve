@@ -19,6 +19,7 @@ export function registerHaTools(
 
   registerTool(server, config, {
     name: "pve_list_ha_resources",
+    title: "List HA Resources",
     description: "List all HA-managed resources in the cluster",
     category: "ha",
     accessTier: "read-only",
@@ -39,6 +40,7 @@ export function registerHaTools(
 
   registerTool(server, config, {
     name: "pve_get_ha_resource",
+    title: "Get HA Resource",
     description:
       "Get the HA configuration for a specific resource. SID format: type:vmid (e.g. vm:100)",
     category: "ha",
@@ -61,6 +63,7 @@ export function registerHaTools(
 
   registerTool(server, config, {
     name: "pve_create_ha_resource",
+    title: "Create HA Resource",
     description:
       "Add a VM or container to HA management. SID format: type:vmid (e.g. vm:100)",
     category: "ha",
@@ -100,6 +103,7 @@ export function registerHaTools(
 
   registerTool(server, config, {
     name: "pve_update_ha_resource",
+    title: "Update HA Resource",
     description: "Update the HA configuration for an existing managed resource",
     category: "ha",
     accessTier: "full",
@@ -138,6 +142,7 @@ export function registerHaTools(
 
   registerTool(server, config, {
     name: "pve_delete_ha_resource",
+    title: "Delete HA Resource",
     description:
       "Remove a VM or container from HA management (does not delete the VM/container itself)",
     category: "ha",

@@ -17,6 +17,7 @@ export function registerPoolTools(
 
   registerTool(server, config, {
     name: "pve_list_pools",
+    title: "List Pools",
     description: "List all resource pools in the cluster",
     category: "pools",
     accessTier: "read-only",
@@ -29,6 +30,7 @@ export function registerPoolTools(
 
   registerTool(server, config, {
     name: "pve_get_pool",
+    title: "Get Pool",
     description:
       "Get detailed information about a resource pool including its members",
     category: "pools",
@@ -49,6 +51,7 @@ export function registerPoolTools(
 
   registerTool(server, config, {
     name: "pve_create_pool",
+    title: "Create Pool",
     description: "Create a new resource pool",
     category: "pools",
     accessTier: "full",
@@ -67,6 +70,7 @@ export function registerPoolTools(
 
   registerTool(server, config, {
     name: "pve_update_pool",
+    title: "Update Pool",
     description:
       "Update a resource pool — add or remove VMs/containers and storage from the pool",
     category: "pools",
@@ -104,6 +108,7 @@ export function registerPoolTools(
 
   registerTool(server, config, {
     name: "pve_delete_pool",
+    title: "Delete Pool",
     description: "Delete a resource pool (pool must be empty)",
     category: "pools",
     accessTier: "full",

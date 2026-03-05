@@ -21,6 +21,7 @@ const TIER_LEVELS: Record<AccessTier, number> = {
 
 export interface ToolRegistrationOptions {
   name: string;
+  title: string;
   description: string;
   accessTier: AccessTier;
   category: ToolCategory;
@@ -66,10 +67,12 @@ export function registerTool(
   };
 
   const toolConfig: {
+    title?: string;
     description: string;
     inputSchema?: ZodRawShape;
     annotations: ToolAnnotations;
   } = {
+    ...(!config.excludeToolTitles && { title: options.title }),
     description: options.description,
     annotations,
   };

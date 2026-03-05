@@ -64,6 +64,30 @@ describe("tool registration", () => {
     await filteredConn.cleanup();
   });
 
+  describe("tool titles", () => {
+    it("includes titles by default", async () => {
+      const server = createServer();
+      registerAllTools(server, makeMockClient(), makeConfig());
+      const { client, cleanup } = await connectTestClient(server);
+      const { tools } = await client.listTools();
+      for (const tool of tools) {
+        expect(tool.title, `${tool.name} missing title`).toBeDefined();
+      }
+      await cleanup();
+    });
+
+    it("excludes titles when excludeToolTitles is true", async () => {
+      const server = createServer();
+      registerAllTools(server, makeMockClient(), makeConfig({ excludeToolTitles: true }));
+      const { client, cleanup } = await connectTestClient(server);
+      const { tools } = await client.listTools();
+      for (const tool of tools) {
+        expect(tool.title, `${tool.name} should not have title`).toBeUndefined();
+      }
+      await cleanup();
+    });
+  });
+
   describe("annotations", () => {
     it("pve_list_nodes: readOnly, not destructive, idempotent", async () => {
       const server = createServer();

@@ -17,6 +17,7 @@ export function registerTaskTools(
 
   registerTool(server, config, {
     name: "pve_list_tasks",
+    title: "List Tasks",
     description:
       "List recent tasks on a node with optional filters for status, source, and VMID",
     category: "tasks",
@@ -56,6 +57,7 @@ export function registerTaskTools(
 
   registerTool(server, config, {
     name: "pve_get_task_status",
+    title: "Get Task Status",
     description: "Get the status of a specific task by its UPID",
     category: "tasks",
     accessTier: "read-only",
@@ -74,6 +76,7 @@ export function registerTaskTools(
 
   registerTool(server, config, {
     name: "pve_get_task_log",
+    title: "Get Task Log",
     description: "Get the log output of a specific task by its UPID",
     category: "tasks",
     accessTier: "read-only",
@@ -105,6 +108,7 @@ export function registerTaskTools(
 
   registerTool(server, config, {
     name: "pve_stop_task",
+    title: "Stop Task",
     description: "Stop a running task by its UPID",
     category: "tasks",
     accessTier: "read-execute",

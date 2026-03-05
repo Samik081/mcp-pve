@@ -70,6 +70,8 @@ export function loadConfig(): AppConfig {
     );
   }
 
+  const excludeToolTitles = process.env.MCP_EXCLUDE_TOOL_TITLES === "true";
+
   const verifySsl = process.env.PVE_VERIFY_SSL !== "false";
 
   const transport =
@@ -89,6 +91,7 @@ export function loadConfig(): AppConfig {
     tokenSecret: tokenSecret!,
     accessTier: parseAccessTier(),
     categories: parseCategories(process.env.PVE_CATEGORIES),
+    excludeToolTitles,
     verifySsl,
     debug: Boolean(process.env.DEBUG),
     transport,

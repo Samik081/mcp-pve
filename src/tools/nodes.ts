@@ -17,6 +17,7 @@ export function registerNodeTools(
 
   registerTool(server, config, {
     name: "pve_list_nodes",
+    title: "List Nodes",
     description: "List all nodes in the Proxmox VE cluster",
     category: "nodes",
     accessTier: "read-only",
@@ -29,6 +30,7 @@ export function registerNodeTools(
 
   registerTool(server, config, {
     name: "pve_get_node_status",
+    title: "Get Node Status",
     description:
       "Get detailed status of a specific node including CPU, memory, uptime, and load",
     category: "nodes",
@@ -45,6 +47,7 @@ export function registerNodeTools(
 
   registerTool(server, config, {
     name: "pve_get_node_version",
+    title: "Get Node Version",
     description: "Get the PVE version information for a specific node",
     category: "nodes",
     accessTier: "read-only",
@@ -60,6 +63,7 @@ export function registerNodeTools(
 
   registerTool(server, config, {
     name: "pve_get_node_dns",
+    title: "Get Node DNS",
     description: "Get DNS settings for a specific node",
     category: "nodes",
     accessTier: "read-only",
@@ -75,6 +79,7 @@ export function registerNodeTools(
 
   registerTool(server, config, {
     name: "pve_get_node_time",
+    title: "Get Node Time",
     description: "Get time and timezone information for a specific node",
     category: "nodes",
     accessTier: "read-only",
@@ -90,6 +95,7 @@ export function registerNodeTools(
 
   registerTool(server, config, {
     name: "pve_get_node_syslog",
+    title: "Get Node Syslog",
     description: "Get system log entries from a specific node",
     category: "nodes",
     accessTier: "read-only",
@@ -119,6 +125,7 @@ export function registerNodeTools(
 
   registerTool(server, config, {
     name: "pve_list_node_services",
+    title: "List Node Services",
     description:
       "List all system services and their status on a specific node",
     category: "nodes",
@@ -137,6 +144,7 @@ export function registerNodeTools(
 
   registerTool(server, config, {
     name: "pve_manage_node_service",
+    title: "Manage Node Service",
     description:
       "Start, stop, restart, or reload a system service on a specific node",
     category: "nodes",

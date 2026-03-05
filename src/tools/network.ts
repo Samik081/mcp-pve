@@ -17,6 +17,7 @@ export function registerNetworkTools(
 
   registerTool(server, config, {
     name: "pve_list_networks",
+    title: "List Networks",
     description: "List all network interfaces on a specific node",
     category: "network",
     accessTier: "read-only",
@@ -38,6 +39,7 @@ export function registerNetworkTools(
 
   registerTool(server, config, {
     name: "pve_get_network",
+    title: "Get Network",
     description: "Get the configuration of a specific network interface on a node",
     category: "network",
     accessTier: "read-only",
@@ -58,6 +60,7 @@ export function registerNetworkTools(
 
   registerTool(server, config, {
     name: "pve_create_network",
+    title: "Create Network",
     description: "Create a new network interface on a node",
     category: "network",
     accessTier: "full",
@@ -108,6 +111,7 @@ export function registerNetworkTools(
 
   registerTool(server, config, {
     name: "pve_update_network",
+    title: "Update Network",
     description: "Update the configuration of a network interface on a node",
     category: "network",
     accessTier: "full",
@@ -149,6 +153,7 @@ export function registerNetworkTools(
 
   registerTool(server, config, {
     name: "pve_delete_network",
+    title: "Delete Network",
     description: "Delete a network interface configuration on a node",
     category: "network",
     accessTier: "full",

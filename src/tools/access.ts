@@ -17,6 +17,7 @@ export function registerAccessTools(
 
   registerTool(server, config, {
     name: "pve_list_users",
+    title: "List Users",
     description: "List all users in the PVE access control system",
     category: "access",
     accessTier: "read-only",
@@ -37,6 +38,7 @@ export function registerAccessTools(
 
   registerTool(server, config, {
     name: "pve_get_user",
+    title: "Get User",
     description: "Get detailed information about a specific user",
     category: "access",
     accessTier: "read-only",
@@ -54,6 +56,7 @@ export function registerAccessTools(
 
   registerTool(server, config, {
     name: "pve_list_roles",
+    title: "List Roles",
     description: "List all available roles and their privileges",
     category: "access",
     accessTier: "read-only",
@@ -66,6 +69,7 @@ export function registerAccessTools(
 
   registerTool(server, config, {
     name: "pve_list_groups",
+    title: "List Groups",
     description: "List all user groups",
     category: "access",
     accessTier: "read-only",
@@ -78,6 +82,7 @@ export function registerAccessTools(
 
   registerTool(server, config, {
     name: "pve_list_acls",
+    title: "List ACLs",
     description: "List all access control list entries",
     category: "access",
     accessTier: "read-only",
@@ -90,6 +95,7 @@ export function registerAccessTools(
 
   registerTool(server, config, {
     name: "pve_list_domains",
+    title: "List Domains",
     description:
       "List all authentication domains/realms (e.g. pam, pve, ldap, ad)",
     category: "access",
@@ -105,6 +111,7 @@ export function registerAccessTools(
 
   registerTool(server, config, {
     name: "pve_create_user",
+    title: "Create User",
     description: "Create a new user in the PVE access control system",
     category: "access",
     accessTier: "full",
@@ -148,6 +155,7 @@ export function registerAccessTools(
 
   registerTool(server, config, {
     name: "pve_update_user",
+    title: "Update User",
     description: "Update an existing user's properties",
     category: "access",
     accessTier: "full",
@@ -190,6 +198,7 @@ export function registerAccessTools(
 
   registerTool(server, config, {
     name: "pve_delete_user",
+    title: "Delete User",
     description: "Delete a user from the PVE access control system",
     category: "access",
     accessTier: "full",
@@ -207,6 +216,7 @@ export function registerAccessTools(
 
   registerTool(server, config, {
     name: "pve_update_acl",
+    title: "Update ACL",
     description:
       "Update access control list — grant or revoke roles for users/groups on specific paths",
     category: "access",

@@ -17,6 +17,7 @@ export function registerStorageTools(
 
   registerTool(server, config, {
     name: "pve_list_storage",
+    title: "List Storage",
     description: "List all configured storage backends in the cluster",
     category: "storage",
     accessTier: "read-only",
@@ -37,6 +38,7 @@ export function registerStorageTools(
 
   registerTool(server, config, {
     name: "pve_get_storage_config",
+    title: "Get Storage Configuration",
     description: "Get the configuration of a specific storage backend",
     category: "storage",
     accessTier: "read-only",
@@ -52,6 +54,7 @@ export function registerStorageTools(
 
   registerTool(server, config, {
     name: "pve_list_node_storage",
+    title: "List Node Storage",
     description: "List available storage on a specific node with usage information",
     category: "storage",
     accessTier: "read-only",
@@ -73,6 +76,7 @@ export function registerStorageTools(
 
   registerTool(server, config, {
     name: "pve_get_storage_status",
+    title: "Get Storage Status",
     description: "Get the status and usage of a specific storage on a node",
     category: "storage",
     accessTier: "read-only",
@@ -91,6 +95,7 @@ export function registerStorageTools(
 
   registerTool(server, config, {
     name: "pve_list_storage_content",
+    title: "List Storage Content",
     description:
       "List the content (disk images, ISOs, templates, backups) of a specific storage on a node",
     category: "storage",
@@ -116,6 +121,7 @@ export function registerStorageTools(
 
   registerTool(server, config, {
     name: "pve_create_storage",
+    title: "Create Storage",
     description: "Create a new storage backend in the cluster",
     category: "storage",
     accessTier: "full",
@@ -178,6 +184,7 @@ export function registerStorageTools(
 
   registerTool(server, config, {
     name: "pve_update_storage",
+    title: "Update Storage",
     description: "Update the configuration of an existing storage backend",
     category: "storage",
     accessTier: "full",
@@ -214,6 +221,7 @@ export function registerStorageTools(
 
   registerTool(server, config, {
     name: "pve_delete_storage",
+    title: "Delete Storage",
     description: "Delete a storage backend configuration from the cluster",
     category: "storage",
     accessTier: "full",

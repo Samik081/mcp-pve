@@ -17,6 +17,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_list_qemu_vms",
+    title: "List QEMU VMs",
     description: "List all QEMU virtual machines on a specific node",
     category: "qemu",
     accessTier: "read-only",
@@ -32,6 +33,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_get_qemu_status",
+    title: "Get QEMU VM Status",
     description:
       "Get the current status of a QEMU VM including CPU, memory, disk, and network usage",
     category: "qemu",
@@ -51,6 +53,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_get_qemu_config",
+    title: "Get QEMU VM Configuration",
     description: "Get the configuration of a QEMU VM",
     category: "qemu",
     accessTier: "read-only",
@@ -69,6 +72,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_get_qemu_rrddata",
+    title: "Get QEMU VM RRD Data",
     description:
       "Get RRD statistics (CPU, memory, disk, network) for a QEMU VM over a time period",
     category: "qemu",
@@ -91,6 +95,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_list_qemu_snapshots",
+    title: "List QEMU VM Snapshots",
     description: "List all snapshots of a QEMU VM",
     category: "qemu",
     accessTier: "read-only",
@@ -110,18 +115,19 @@ export function registerQemuTools(
   // --- Read-execute tools (power actions) ---
 
   const powerActions = [
-    { action: "start", method: "start", desc: "Start" },
-    { action: "stop", method: "stop", desc: "Stop (immediate)" },
-    { action: "shutdown", method: "shutdown", desc: "Gracefully shut down" },
-    { action: "reboot", method: "reboot", desc: "Reboot" },
-    { action: "suspend", method: "suspend", desc: "Suspend" },
-    { action: "resume", method: "resume", desc: "Resume" },
-    { action: "reset", method: "reset", desc: "Reset (hard)" },
+    { action: "start", method: "start", desc: "Start", title: "Start QEMU VM" },
+    { action: "stop", method: "stop", desc: "Stop (immediate)", title: "Stop QEMU VM" },
+    { action: "shutdown", method: "shutdown", desc: "Gracefully shut down", title: "Shutdown QEMU VM" },
+    { action: "reboot", method: "reboot", desc: "Reboot", title: "Reboot QEMU VM" },
+    { action: "suspend", method: "suspend", desc: "Suspend", title: "Suspend QEMU VM" },
+    { action: "resume", method: "resume", desc: "Resume", title: "Resume QEMU VM" },
+    { action: "reset", method: "reset", desc: "Reset (hard)", title: "Reset QEMU VM" },
   ] as const;
 
-  for (const { action, method, desc } of powerActions) {
+  for (const { action, method, desc, title } of powerActions) {
     registerTool(server, config, {
       name: `pve_${action}_qemu_vm`,
+      title,
       description: `${desc} a QEMU virtual machine`,
       category: "qemu",
       accessTier: "read-execute",
@@ -141,6 +147,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_migrate_qemu_vm",
+    title: "Migrate QEMU VM",
     description: "Migrate a QEMU VM to another node in the cluster",
     category: "qemu",
     accessTier: "read-execute",
@@ -169,6 +176,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_create_qemu_vm",
+    title: "Create QEMU VM",
     description: "Create a new QEMU virtual machine",
     category: "qemu",
     accessTier: "full",
@@ -238,6 +246,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_delete_qemu_vm",
+    title: "Delete QEMU VM",
     description:
       "Delete a QEMU virtual machine and all its data. The VM must be stopped first.",
     category: "qemu",
@@ -269,6 +278,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_update_qemu_config",
+    title: "Update QEMU VM Configuration",
     description: "Update the configuration of a QEMU VM",
     category: "qemu",
     accessTier: "full",
@@ -314,6 +324,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_clone_qemu_vm",
+    title: "Clone QEMU VM",
     description: "Clone a QEMU VM to create a new VM from it",
     category: "qemu",
     accessTier: "full",
@@ -362,6 +373,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_create_qemu_snapshot",
+    title: "Create QEMU VM Snapshot",
     description: "Create a snapshot of a QEMU VM",
     category: "qemu",
     accessTier: "full",
@@ -393,6 +405,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_delete_qemu_snapshot",
+    title: "Delete QEMU VM Snapshot",
     description: "Delete a snapshot of a QEMU VM",
     category: "qemu",
     accessTier: "full",
@@ -412,6 +425,7 @@ export function registerQemuTools(
 
   registerTool(server, config, {
     name: "pve_rollback_qemu_snapshot",
+    title: "Rollback QEMU VM Snapshot",
     description: "Rollback a QEMU VM to a previous snapshot state",
     category: "qemu",
     accessTier: "full",

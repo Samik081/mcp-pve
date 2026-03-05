@@ -49,6 +49,7 @@ export interface AppConfig {
   tokenSecret: string;
   accessTier: AccessTier;
   categories: string[] | null;
+  excludeToolTitles: boolean;
   verifySsl: boolean;
   debug: boolean;
   transport: "stdio" | "http";
