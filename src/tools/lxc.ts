@@ -17,6 +17,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_list_lxc_containers",
+    title: "List LXC Containers",
     description: "List all LXC containers on a specific node",
     category: "lxc",
     accessTier: "read-only",
@@ -32,6 +33,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_get_lxc_status",
+    title: "Get LXC Container Status",
     description:
       "Get the current status of an LXC container including CPU, memory, and disk usage",
     category: "lxc",
@@ -51,6 +53,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_get_lxc_config",
+    title: "Get LXC Container Configuration",
     description: "Get the configuration of an LXC container",
     category: "lxc",
     accessTier: "read-only",
@@ -69,6 +72,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_get_lxc_rrddata",
+    title: "Get LXC Container RRD Data",
     description:
       "Get RRD statistics (CPU, memory, disk, network) for an LXC container over a time period",
     category: "lxc",
@@ -91,6 +95,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_list_lxc_snapshots",
+    title: "List LXC Container Snapshots",
     description: "List all snapshots of an LXC container",
     category: "lxc",
     accessTier: "read-only",
@@ -110,17 +115,18 @@ export function registerLxcTools(
   // --- Read-execute tools (power actions) ---
 
   const powerActions = [
-    { action: "start", method: "start", desc: "Start" },
-    { action: "stop", method: "stop", desc: "Stop (immediate)" },
-    { action: "shutdown", method: "shutdown", desc: "Gracefully shut down" },
-    { action: "reboot", method: "reboot", desc: "Reboot" },
-    { action: "suspend", method: "suspend", desc: "Suspend (freeze)" },
-    { action: "resume", method: "resume", desc: "Resume (unfreeze)" },
+    { action: "start", method: "start", desc: "Start", title: "Start LXC Container" },
+    { action: "stop", method: "stop", desc: "Stop (immediate)", title: "Stop LXC Container" },
+    { action: "shutdown", method: "shutdown", desc: "Gracefully shut down", title: "Shutdown LXC Container" },
+    { action: "reboot", method: "reboot", desc: "Reboot", title: "Reboot LXC Container" },
+    { action: "suspend", method: "suspend", desc: "Suspend (freeze)", title: "Suspend LXC Container" },
+    { action: "resume", method: "resume", desc: "Resume (unfreeze)", title: "Resume LXC Container" },
   ] as const;
 
-  for (const { action, method, desc } of powerActions) {
+  for (const { action, method, desc, title } of powerActions) {
     registerTool(server, config, {
       name: `pve_${action}_lxc_container`,
+      title,
       description: `${desc} an LXC container`,
       category: "lxc",
       accessTier: "read-execute",
@@ -142,6 +148,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_create_lxc_container",
+    title: "Create LXC Container",
     description: "Create a new LXC container",
     category: "lxc",
     accessTier: "full",
@@ -219,6 +226,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_delete_lxc_container",
+    title: "Delete LXC Container",
     description:
       "Delete an LXC container and all its data. The container must be stopped first.",
     category: "lxc",
@@ -255,6 +263,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_update_lxc_config",
+    title: "Update LXC Container Configuration",
     description: "Update the configuration of an LXC container",
     category: "lxc",
     accessTier: "full",
@@ -295,6 +304,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_clone_lxc_container",
+    title: "Clone LXC Container",
     description: "Clone an LXC container to create a new container from it",
     category: "lxc",
     accessTier: "full",
@@ -343,6 +353,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_create_lxc_snapshot",
+    title: "Create LXC Container Snapshot",
     description: "Create a snapshot of an LXC container",
     category: "lxc",
     accessTier: "full",
@@ -369,6 +380,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_delete_lxc_snapshot",
+    title: "Delete LXC Container Snapshot",
     description: "Delete a snapshot of an LXC container",
     category: "lxc",
     accessTier: "full",
@@ -388,6 +400,7 @@ export function registerLxcTools(
 
   registerTool(server, config, {
     name: "pve_rollback_lxc_snapshot",
+    title: "Rollback LXC Container Snapshot",
     description: "Rollback an LXC container to a previous snapshot state",
     category: "lxc",
     accessTier: "full",

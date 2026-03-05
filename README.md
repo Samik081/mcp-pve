@@ -168,6 +168,7 @@ Tools that are not available in your tier are not registered with the MCP server
 | `MCP_TRANSPORT` | No | `stdio` | Transport mode: `stdio` (default) or `http` |
 | `MCP_PORT` | No | `3000` | HTTP server port (only used when `MCP_TRANSPORT=http`) |
 | `MCP_HOST` | No | `0.0.0.0` | HTTP server bind address (only used when `MCP_TRANSPORT=http`) |
+| `MCP_EXCLUDE_TOOL_TITLES` | No | `false` | Set `true` to omit tool titles from registration (saves tokens) |
 
 Create API tokens in the PVE UI under **Datacenter > Permissions > API Tokens**. Make sure to uncheck "Privilege Separation" if you want the token to inherit the user's full permissions.
 

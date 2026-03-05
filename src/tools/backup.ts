@@ -17,6 +17,7 @@ export function registerBackupTools(
 
   registerTool(server, config, {
     name: "pve_list_backup_jobs",
+    title: "List Backup Jobs",
     description: "List all scheduled backup jobs in the cluster",
     category: "backup",
     accessTier: "read-only",
@@ -29,6 +30,7 @@ export function registerBackupTools(
 
   registerTool(server, config, {
     name: "pve_get_backup_job",
+    title: "Get Backup Job",
     description: "Get the configuration of a specific backup job",
     category: "backup",
     accessTier: "read-only",
@@ -46,6 +48,7 @@ export function registerBackupTools(
 
   registerTool(server, config, {
     name: "pve_run_backup",
+    title: "Run Backup",
     description:
       "Run an immediate backup (vzdump) of one or more VMs/containers on a node",
     category: "backup",
@@ -96,6 +99,7 @@ export function registerBackupTools(
 
   registerTool(server, config, {
     name: "pve_create_backup_job",
+    title: "Create Backup Job",
     description: "Create a new scheduled backup job",
     category: "backup",
     accessTier: "full",
@@ -167,6 +171,7 @@ export function registerBackupTools(
 
   registerTool(server, config, {
     name: "pve_delete_backup_job",
+    title: "Delete Backup Job",
     description: "Delete a scheduled backup job",
     category: "backup",
     accessTier: "full",

@@ -17,6 +17,7 @@ export function registerClusterTools(
 
   registerTool(server, config, {
     name: "pve_get_cluster_status",
+    title: "Get Cluster Status",
     description: "Get the current cluster status including node membership and quorum",
     category: "cluster",
     accessTier: "read-only",
@@ -29,6 +30,7 @@ export function registerClusterTools(
 
   registerTool(server, config, {
     name: "pve_list_cluster_resources",
+    title: "List Cluster Resources",
     description:
       "List all cluster resources (VMs, containers, storage, nodes) with optional type filter",
     category: "cluster",
@@ -50,6 +52,7 @@ export function registerClusterTools(
 
   registerTool(server, config, {
     name: "pve_get_next_vmid",
+    title: "Get Next VMID",
     description: "Get the next available VMID in the cluster",
     category: "cluster",
     accessTier: "read-only",
@@ -62,6 +65,7 @@ export function registerClusterTools(
 
   registerTool(server, config, {
     name: "pve_get_cluster_log",
+    title: "Get Cluster Log",
     description: "Get recent cluster log entries",
     category: "cluster",
     accessTier: "read-only",
@@ -82,6 +86,7 @@ export function registerClusterTools(
 
   registerTool(server, config, {
     name: "pve_get_cluster_options",
+    title: "Get Cluster Options",
     description: "Get cluster-wide datacenter options",
     category: "cluster",
     accessTier: "read-only",
@@ -94,6 +99,7 @@ export function registerClusterTools(
 
   registerTool(server, config, {
     name: "pve_list_cluster_backup_info",
+    title: "List Cluster Backup Info",
     description: "List guests that are not covered by any backup job",
     category: "cluster",
     accessTier: "read-only",
@@ -106,6 +112,7 @@ export function registerClusterTools(
 
   registerTool(server, config, {
     name: "pve_get_cluster_ha_status",
+    title: "Get Cluster HA Status",
     description: "Get the current HA manager status",
     category: "cluster",
     accessTier: "read-only",
@@ -118,6 +125,7 @@ export function registerClusterTools(
 
   registerTool(server, config, {
     name: "pve_list_cluster_replication",
+    title: "List Cluster Replication",
     description: "List all replication jobs in the cluster",
     category: "cluster",
     accessTier: "read-only",
@@ -132,6 +140,7 @@ export function registerClusterTools(
 
   registerTool(server, config, {
     name: "pve_update_cluster_options",
+    title: "Update Cluster Options",
     description: "Update cluster-wide datacenter options",
     category: "cluster",
     accessTier: "full",

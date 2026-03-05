@@ -17,6 +17,7 @@ export function registerFirewallTools(
 
   registerTool(server, config, {
     name: "pve_get_firewall_options",
+    title: "Get Firewall Options",
     description: "Get the cluster-level firewall options",
     category: "firewall",
     accessTier: "read-only",
@@ -29,6 +30,7 @@ export function registerFirewallTools(
 
   registerTool(server, config, {
     name: "pve_list_firewall_rules",
+    title: "List Firewall Rules",
     description: "List all cluster-level firewall rules",
     category: "firewall",
     accessTier: "read-only",
@@ -41,6 +43,7 @@ export function registerFirewallTools(
 
   registerTool(server, config, {
     name: "pve_list_firewall_aliases",
+    title: "List Firewall Aliases",
     description: "List all cluster-level firewall aliases (named IP/CIDR entries)",
     category: "firewall",
     accessTier: "read-only",
@@ -53,6 +56,7 @@ export function registerFirewallTools(
 
   registerTool(server, config, {
     name: "pve_list_firewall_ipsets",
+    title: "List Firewall IP Sets",
     description: "List all cluster-level firewall IP sets",
     category: "firewall",
     accessTier: "read-only",
@@ -67,6 +71,7 @@ export function registerFirewallTools(
 
   registerTool(server, config, {
     name: "pve_update_firewall_options",
+    title: "Update Firewall Options",
     description: "Update the cluster-level firewall options (e.g. enable/disable firewall)",
     category: "firewall",
     accessTier: "full",
@@ -103,6 +108,7 @@ export function registerFirewallTools(
 
   registerTool(server, config, {
     name: "pve_create_firewall_rule",
+    title: "Create Firewall Rule",
     description: "Create a new cluster-level firewall rule",
     category: "firewall",
     accessTier: "full",
@@ -162,6 +168,7 @@ export function registerFirewallTools(
 
   registerTool(server, config, {
     name: "pve_update_firewall_rule",
+    title: "Update Firewall Rule",
     description: "Update an existing cluster-level firewall rule by position",
     category: "firewall",
     accessTier: "full",
@@ -206,6 +213,7 @@ export function registerFirewallTools(
 
   registerTool(server, config, {
     name: "pve_delete_firewall_rule",
+    title: "Delete Firewall Rule",
     description: "Delete a cluster-level firewall rule by position",
     category: "firewall",
     accessTier: "full",
