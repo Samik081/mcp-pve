@@ -163,6 +163,8 @@ Tools that are not available in your tier are not registered with the MCP server
 | `PVE_TOKEN_SECRET` | Yes | — | API token UUID secret |
 | `PVE_ACCESS_TIER` | No | `full` | `read-only`, `read-execute`, or `full` |
 | `PVE_CATEGORIES` | No | all | Comma-separated category allowlist |
+| `PVE_TOOL_BLACKLIST` | No | *(none)* | Comma-separated list of tool names to exclude (e.g., `pve_delete_qemu_vm`) |
+| `PVE_TOOL_WHITELIST` | No | *(none)* | Comma-separated list of tool names to force-include, bypassing access tier and category filters |
 | `PVE_VERIFY_SSL` | No | `true` | Set `false` for self-signed certs |
 | `DEBUG` | No | — | Set to any value to enable debug logging to stderr |
 | `MCP_TRANSPORT` | No | `stdio` | Transport mode: `stdio` (default) or `http` |

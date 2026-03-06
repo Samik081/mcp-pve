@@ -20,6 +20,16 @@ function parseAccessTier(): AccessTier {
   return "full";
 }
 
+function parseToolList(value: string | undefined): string[] | null {
+  if (value === undefined || value === "") {
+    return null;
+  }
+  return value
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
 function parseCategories(value: string | undefined): string[] | null {
   if (value === undefined || value === "") {
     return null;
@@ -91,6 +101,8 @@ export function loadConfig(): AppConfig {
     tokenSecret: tokenSecret!,
     accessTier: parseAccessTier(),
     categories: parseCategories(process.env.PVE_CATEGORIES),
+    toolBlacklist: parseToolList(process.env.PVE_TOOL_BLACKLIST),
+    toolWhitelist: parseToolList(process.env.PVE_TOOL_WHITELIST),
     excludeToolTitles,
     verifySsl,
     debug: Boolean(process.env.DEBUG),
