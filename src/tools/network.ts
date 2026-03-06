@@ -2,11 +2,11 @@
  * Network tools: list, get, and CRUD for node network interfaces.
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { registerTool } from "../core/tools.js";
+import type { AppConfig } from "../types/index.js";
 
 export function registerNetworkTools(
   server: McpServer,
@@ -21,11 +21,27 @@ export function registerNetworkTools(
     description: "List all network interfaces on a specific node",
     category: "network",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       type: z
-        .enum(["bridge", "bond", "eth", "alias", "vlan", "OVSBridge", "OVSBond", "OVSPort", "OVSIntPort", "any_bridge", "any_local_bridge"])
+        .enum([
+          "bridge",
+          "bond",
+          "eth",
+          "alias",
+          "vlan",
+          "OVSBridge",
+          "OVSBond",
+          "OVSPort",
+          "OVSIntPort",
+          "any_bridge",
+          "any_local_bridge",
+        ])
         .optional()
         .describe("Filter by interface type"),
     },
@@ -40,10 +56,15 @@ export function registerNetworkTools(
   registerTool(server, config, {
     name: "pve_get_network",
     title: "Get Network",
-    description: "Get the configuration of a specific network interface on a node",
+    description:
+      "Get the configuration of a specific network interface on a node",
     category: "network",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       iface: z.string().describe("The interface name (e.g. vmbr0, eth0)"),
@@ -64,12 +85,26 @@ export function registerNetworkTools(
     description: "Create a new network interface on a node",
     category: "network",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       iface: z.string().describe("The interface name (e.g. vmbr1)"),
       type: z
-        .enum(["bridge", "bond", "eth", "alias", "vlan", "OVSBridge", "OVSBond", "OVSPort", "OVSIntPort"])
+        .enum([
+          "bridge",
+          "bond",
+          "eth",
+          "alias",
+          "vlan",
+          "OVSBridge",
+          "OVSBond",
+          "OVSPort",
+          "OVSIntPort",
+        ])
         .describe("Interface type"),
       address: z
         .string()
@@ -77,10 +112,7 @@ export function registerNetworkTools(
         .describe("IPv4 address (CIDR notation or plain)"),
       netmask: z.string().optional().describe("IPv4 netmask"),
       gateway: z.string().optional().describe("Default gateway"),
-      bridge_ports: z
-        .string()
-        .optional()
-        .describe("Bridge ports (e.g. eno1)"),
+      bridge_ports: z.string().optional().describe("Bridge ports (e.g. eno1)"),
       bridge_vlan_aware: z
         .boolean()
         .optional()
@@ -99,7 +131,8 @@ export function registerNetworkTools(
       if (args.address !== undefined) body.address = args.address;
       if (args.netmask !== undefined) body.netmask = args.netmask;
       if (args.gateway !== undefined) body.gateway = args.gateway;
-      if (args.bridge_ports !== undefined) body.bridge_ports = args.bridge_ports;
+      if (args.bridge_ports !== undefined)
+        body.bridge_ports = args.bridge_ports;
       if (args.bridge_vlan_aware !== undefined)
         body.bridge_vlan_aware = args.bridge_vlan_aware ? 1 : 0;
       if (args.autostart !== undefined) body.autostart = args.autostart ? 1 : 0;
@@ -115,12 +148,26 @@ export function registerNetworkTools(
     description: "Update the configuration of a network interface on a node",
     category: "network",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       iface: z.string().describe("The interface name"),
       type: z
-        .enum(["bridge", "bond", "eth", "alias", "vlan", "OVSBridge", "OVSBond", "OVSPort", "OVSIntPort"])
+        .enum([
+          "bridge",
+          "bond",
+          "eth",
+          "alias",
+          "vlan",
+          "OVSBridge",
+          "OVSBond",
+          "OVSPort",
+          "OVSIntPort",
+        ])
         .describe("Interface type"),
       address: z.string().optional().describe("IPv4 address"),
       netmask: z.string().optional().describe("IPv4 netmask"),
@@ -141,7 +188,8 @@ export function registerNetworkTools(
       if (args.address !== undefined) body.address = args.address;
       if (args.netmask !== undefined) body.netmask = args.netmask;
       if (args.gateway !== undefined) body.gateway = args.gateway;
-      if (args.bridge_ports !== undefined) body.bridge_ports = args.bridge_ports;
+      if (args.bridge_ports !== undefined)
+        body.bridge_ports = args.bridge_ports;
       if (args.bridge_vlan_aware !== undefined)
         body.bridge_vlan_aware = args.bridge_vlan_aware ? 1 : 0;
       if (args.autostart !== undefined) body.autostart = args.autostart ? 1 : 0;
@@ -157,7 +205,11 @@ export function registerNetworkTools(
     description: "Delete a network interface configuration on a node",
     category: "network",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       iface: z.string().describe("The interface name to delete"),

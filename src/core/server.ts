@@ -5,18 +5,18 @@
  * which selects stdio or HTTP transport based on config.
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { randomUUID } from "node:crypto";
 import {
   createServer as createHttpServer,
   type IncomingMessage,
   type ServerResponse,
 } from "node:http";
-import { randomUUID } from "node:crypto";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import pkg from "../../package.json" with { type: "json" };
 import type { AppConfig } from "../types/index.js";
 import { logger } from "./logger.js";
-import pkg from "../../package.json" with { type: "json" };
 
 const SERVER_NAME = "mcp-pve";
 
@@ -104,7 +104,9 @@ async function startHttpServer(
           if (!res.headersSent) {
             const status = err instanceof SyntaxError ? 400 : 500;
             const message =
-              err instanceof SyntaxError ? "Invalid JSON" : "Internal server error";
+              err instanceof SyntaxError
+                ? "Invalid JSON"
+                : "Internal server error";
             res.writeHead(status, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ error: message }));
           }

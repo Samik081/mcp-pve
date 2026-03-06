@@ -17,7 +17,7 @@ import { logger } from "./logger.js";
 const TIER_LEVELS: Record<AccessTier, number> = {
   "read-only": 0,
   "read-execute": 1,
-  "full": 2,
+  full: 2,
 };
 
 export interface ToolRegistrationOptions {
@@ -56,10 +56,8 @@ export function registerTool(
 ): boolean {
   seenToolNames.add(options.name);
 
-  const isBlacklisted =
-    config.toolBlacklist !== null && config.toolBlacklist.includes(options.name);
-  const isWhitelisted =
-    config.toolWhitelist !== null && config.toolWhitelist.includes(options.name);
+  const isBlacklisted = config.toolBlacklist?.includes(options.name);
+  const isWhitelisted = config.toolWhitelist?.includes(options.name);
 
   // Blacklist always wins
   if (isBlacklisted) {
@@ -137,7 +135,9 @@ export function registerTool(
   );
 
   if (isWhitelisted) {
-    logger.debug(`Registered tool: ${options.name} [${options.category}] (whitelisted)`);
+    logger.debug(
+      `Registered tool: ${options.name} [${options.category}] (whitelisted)`,
+    );
   } else {
     logger.debug(`Registered tool: ${options.name} [${options.category}]`);
   }

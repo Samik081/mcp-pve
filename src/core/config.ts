@@ -48,9 +48,7 @@ function parseCategories(value: string | undefined): string[] | null {
     );
   }
 
-  const valid = categories.filter((c) =>
-    VALID_CATEGORIES.includes(c as never),
-  );
+  const valid = categories.filter((c) => VALID_CATEGORIES.includes(c as never));
   return valid.length > 0 ? valid : null;
 }
 
@@ -68,12 +66,11 @@ export function loadConfig(): AppConfig {
   const tokenId = process.env.PVE_TOKEN_ID;
   const tokenSecret = process.env.PVE_TOKEN_SECRET;
 
-  const missing: string[] = [];
-  if (!baseUrl) missing.push("PVE_BASE_URL");
-  if (!tokenId) missing.push("PVE_TOKEN_ID");
-  if (!tokenSecret) missing.push("PVE_TOKEN_SECRET");
-
-  if (missing.length > 0) {
+  if (!baseUrl || !tokenId || !tokenSecret) {
+    const missing: string[] = [];
+    if (!baseUrl) missing.push("PVE_BASE_URL");
+    if (!tokenId) missing.push("PVE_TOKEN_ID");
+    if (!tokenSecret) missing.push("PVE_TOKEN_SECRET");
     throw new Error(
       `Missing required environment variables: ${missing.join(", ")}. ` +
         "Set these variables to connect to your Proxmox VE instance.",
@@ -85,10 +82,12 @@ export function loadConfig(): AppConfig {
   const verifySsl = process.env.PVE_VERIFY_SSL !== "false";
 
   const transport =
-    process.env.MCP_TRANSPORT === "http" ? ("http" as const) : ("stdio" as const);
+    process.env.MCP_TRANSPORT === "http"
+      ? ("http" as const)
+      : ("stdio" as const);
   const rawPort = process.env.MCP_PORT ?? "3000";
   const httpPort = parseInt(rawPort, 10);
-  if (isNaN(httpPort) || httpPort < 1 || httpPort > 65535) {
+  if (Number.isNaN(httpPort) || httpPort < 1 || httpPort > 65535) {
     throw new Error(
       `Invalid MCP_PORT: "${rawPort}". Must be an integer between 1 and 65535.`,
     );
@@ -96,9 +95,9 @@ export function loadConfig(): AppConfig {
   const httpHost = process.env.MCP_HOST ?? "0.0.0.0";
 
   return {
-    baseUrl: baseUrl!.replace(/\/+$/, ""),
-    tokenId: tokenId!,
-    tokenSecret: tokenSecret!,
+    baseUrl: baseUrl.replace(/\/+$/, ""),
+    tokenId,
+    tokenSecret,
     accessTier: parseAccessTier(),
     categories: parseCategories(process.env.PVE_CATEGORIES),
     toolBlacklist: parseToolList(process.env.PVE_TOOL_BLACKLIST),

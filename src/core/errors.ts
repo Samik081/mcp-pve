@@ -29,10 +29,7 @@ export function sanitizeMessage(message: string): string {
     sanitized = sanitized.replaceAll(pattern, "[REDACTED]");
   }
   // Strip PVE API token patterns
-  sanitized = sanitized.replace(
-    /PVEAPIToken=\S+/gi,
-    "PVEAPIToken=[REDACTED]",
-  );
+  sanitized = sanitized.replace(/PVEAPIToken=\S+/gi, "PVEAPIToken=[REDACTED]");
   sanitized = sanitized.replace(
     /authorization:\s*\S+/gi,
     "authorization: [REDACTED]",

@@ -2,11 +2,11 @@
  * Pool tools: CRUD for resource pools.
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { registerTool } from "../core/tools.js";
+import type { AppConfig } from "../types/index.js";
 
 export function registerPoolTools(
   server: McpServer,
@@ -21,7 +21,11 @@ export function registerPoolTools(
     description: "List all resource pools in the cluster",
     category: "pools",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/pools");
       return JSON.stringify(data, null, 2);
@@ -35,7 +39,11 @@ export function registerPoolTools(
       "Get detailed information about a resource pool including its members",
     category: "pools",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       poolid: z.string().describe("The pool ID"),
     },
@@ -55,7 +63,11 @@ export function registerPoolTools(
     description: "Create a new resource pool",
     category: "pools",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       poolid: z.string().describe("The pool ID"),
       comment: z.string().optional().describe("Pool comment/description"),
@@ -75,7 +87,11 @@ export function registerPoolTools(
       "Update a resource pool — add or remove VMs/containers and storage from the pool",
     category: "pools",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       poolid: z.string().describe("The pool ID"),
       comment: z.string().optional().describe("Pool comment/description"),
@@ -112,14 +128,16 @@ export function registerPoolTools(
     description: "Delete a resource pool (pool must be empty)",
     category: "pools",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       poolid: z.string().describe("The pool ID to delete"),
     },
     handler: async (args) => {
-      await client.delete(
-        `/pools/${encodeURIComponent(String(args.poolid))}`,
-      );
+      await client.delete(`/pools/${encodeURIComponent(String(args.poolid))}`);
       return `Pool '${args.poolid}' deleted successfully.`;
     },
   });

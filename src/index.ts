@@ -10,11 +10,12 @@
  * 4. Create MCP server, register tools, start stdio transport
  */
 
-import { loadConfig } from "./core/config.js";
 import { createClient, validateConnection } from "./core/client.js";
+import { loadConfig } from "./core/config.js";
+import { logger } from "./core/logger.js";
 import { createServer, startServer } from "./core/server.js";
 import { registerAllTools } from "./tools/index.js";
-import { logger } from "./core/logger.js";
+import type { AppConfig } from "./types/index.js";
 
 // Process lifecycle handlers -- catch uncaught errors to stderr
 // to prevent them from corrupting the stdout JSON-RPC stream.
@@ -29,7 +30,7 @@ process.on("unhandledRejection", (reason) => {
 });
 
 async function main(): Promise<void> {
-  let config;
+  let config: AppConfig;
   try {
     config = loadConfig();
   } catch (err) {

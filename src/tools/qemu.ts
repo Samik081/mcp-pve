@@ -2,11 +2,11 @@
  * QEMU VM tools: list, status, config, snapshots, power actions, and lifecycle.
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { registerTool } from "../core/tools.js";
+import type { AppConfig } from "../types/index.js";
 
 export function registerQemuTools(
   server: McpServer,
@@ -21,7 +21,11 @@ export function registerQemuTools(
     description: "List all QEMU virtual machines on a specific node",
     category: "qemu",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
     },
@@ -38,7 +42,11 @@ export function registerQemuTools(
       "Get the current status of a QEMU VM including CPU, memory, disk, and network usage",
     category: "qemu",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -57,7 +65,11 @@ export function registerQemuTools(
     description: "Get the configuration of a QEMU VM",
     category: "qemu",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -77,7 +89,11 @@ export function registerQemuTools(
       "Get RRD statistics (CPU, memory, disk, network) for a QEMU VM over a time period",
     category: "qemu",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -99,7 +115,11 @@ export function registerQemuTools(
     description: "List all snapshots of a QEMU VM",
     category: "qemu",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -116,12 +136,42 @@ export function registerQemuTools(
 
   const powerActions = [
     { action: "start", method: "start", desc: "Start", title: "Start QEMU VM" },
-    { action: "stop", method: "stop", desc: "Stop (immediate)", title: "Stop QEMU VM" },
-    { action: "shutdown", method: "shutdown", desc: "Gracefully shut down", title: "Shutdown QEMU VM" },
-    { action: "reboot", method: "reboot", desc: "Reboot", title: "Reboot QEMU VM" },
-    { action: "suspend", method: "suspend", desc: "Suspend", title: "Suspend QEMU VM" },
-    { action: "resume", method: "resume", desc: "Resume", title: "Resume QEMU VM" },
-    { action: "reset", method: "reset", desc: "Reset (hard)", title: "Reset QEMU VM" },
+    {
+      action: "stop",
+      method: "stop",
+      desc: "Stop (immediate)",
+      title: "Stop QEMU VM",
+    },
+    {
+      action: "shutdown",
+      method: "shutdown",
+      desc: "Gracefully shut down",
+      title: "Shutdown QEMU VM",
+    },
+    {
+      action: "reboot",
+      method: "reboot",
+      desc: "Reboot",
+      title: "Reboot QEMU VM",
+    },
+    {
+      action: "suspend",
+      method: "suspend",
+      desc: "Suspend",
+      title: "Suspend QEMU VM",
+    },
+    {
+      action: "resume",
+      method: "resume",
+      desc: "Resume",
+      title: "Resume QEMU VM",
+    },
+    {
+      action: "reset",
+      method: "reset",
+      desc: "Reset (hard)",
+      title: "Reset QEMU VM",
+    },
   ] as const;
 
   for (const { action, method, desc, title } of powerActions) {
@@ -131,7 +181,11 @@ export function registerQemuTools(
       description: `${desc} a QEMU virtual machine`,
       category: "qemu",
       accessTier: "read-execute",
-      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+      },
       inputSchema: {
         node: z.string().describe("The node name"),
         vmid: z.number().describe("The VM ID"),
@@ -151,7 +205,11 @@ export function registerQemuTools(
     description: "Migrate a QEMU VM to another node in the cluster",
     category: "qemu",
     accessTier: "read-execute",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The source node name"),
       vmid: z.number().describe("The VM ID"),
@@ -180,19 +238,17 @@ export function registerQemuTools(
     description: "Create a new QEMU virtual machine",
     category: "qemu",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
       name: z.string().optional().describe("VM name"),
-      memory: z
-        .number()
-        .optional()
-        .describe("Memory in MB (default: 512)"),
-      cores: z
-        .number()
-        .optional()
-        .describe("Number of CPU cores (default: 1)"),
+      memory: z.number().optional().describe("Memory in MB (default: 512)"),
+      cores: z.number().optional().describe("Number of CPU cores (default: 1)"),
       sockets: z
         .number()
         .optional()
@@ -221,10 +277,7 @@ export function registerQemuTools(
         .string()
         .optional()
         .describe("Boot order (e.g. order=scsi0;ide2;net0)"),
-      start: z
-        .boolean()
-        .optional()
-        .describe("Start VM after creation"),
+      start: z.boolean().optional().describe("Start VM after creation"),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = { vmid: args.vmid };
@@ -251,14 +304,20 @@ export function registerQemuTools(
       "Delete a QEMU virtual machine and all its data. The VM must be stopped first.",
     category: "qemu",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
       purge: z
         .boolean()
         .optional()
-        .describe("Remove from all related configurations (e.g. backup jobs, HA)"),
+        .describe(
+          "Remove from all related configurations (e.g. backup jobs, HA)",
+        ),
       "destroy-unreferenced-disks": z
         .boolean()
         .optional()
@@ -282,7 +341,11 @@ export function registerQemuTools(
     description: "Update the configuration of a QEMU VM",
     category: "qemu",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -291,18 +354,9 @@ export function registerQemuTools(
       cores: z.number().optional().describe("Number of CPU cores"),
       sockets: z.number().optional().describe("Number of CPU sockets"),
       description: z.string().optional().describe("VM description"),
-      onboot: z
-        .boolean()
-        .optional()
-        .describe("Start on boot"),
-      net0: z
-        .string()
-        .optional()
-        .describe("Network device config"),
-      scsi0: z
-        .string()
-        .optional()
-        .describe("SCSI disk config"),
+      onboot: z.boolean().optional().describe("Start on boot"),
+      net0: z.string().optional().describe("Network device config"),
+      scsi0: z.string().optional().describe("SCSI disk config"),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = {};
@@ -314,10 +368,7 @@ export function registerQemuTools(
       if (args.onboot !== undefined) body.onboot = args.onboot ? 1 : 0;
       if (args.net0 !== undefined) body.net0 = args.net0;
       if (args.scsi0 !== undefined) body.scsi0 = args.scsi0;
-      await client.put(
-        `/nodes/${args.node}/qemu/${args.vmid}/config`,
-        body,
-      );
+      await client.put(`/nodes/${args.node}/qemu/${args.vmid}/config`, body);
       return `VM ${args.vmid} configuration updated on node ${args.node}.`;
     },
   });
@@ -328,7 +379,11 @@ export function registerQemuTools(
     description: "Clone a QEMU VM to create a new VM from it",
     category: "qemu",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The source node name"),
       vmid: z.number().describe("The source VM ID"),
@@ -346,14 +401,8 @@ export function registerQemuTools(
         .string()
         .optional()
         .describe("Description for the cloned VM"),
-      snapname: z
-        .string()
-        .optional()
-        .describe("Snapshot name to clone from"),
-      storage: z
-        .string()
-        .optional()
-        .describe("Target storage for full clone"),
+      snapname: z.string().optional().describe("Snapshot name to clone from"),
+      storage: z.string().optional().describe("Target storage for full clone"),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = { newid: args.newid };
@@ -377,7 +426,11 @@ export function registerQemuTools(
     description: "Create a snapshot of a QEMU VM",
     category: "qemu",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -409,7 +462,11 @@ export function registerQemuTools(
     description: "Delete a snapshot of a QEMU VM",
     category: "qemu",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),
@@ -429,7 +486,11 @@ export function registerQemuTools(
     description: "Rollback a QEMU VM to a previous snapshot state",
     category: "qemu",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The VM ID"),

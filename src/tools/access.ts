@@ -2,11 +2,11 @@
  * Access tools: users, roles, groups, ACLs, and authentication domains.
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { registerTool } from "../core/tools.js";
+import type { AppConfig } from "../types/index.js";
 
 export function registerAccessTools(
   server: McpServer,
@@ -21,16 +21,18 @@ export function registerAccessTools(
     description: "List all users in the PVE access control system",
     category: "access",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
-      enabled: z
-        .boolean()
-        .optional()
-        .describe("Filter by enabled status"),
+      enabled: z.boolean().optional().describe("Filter by enabled status"),
     },
     handler: async (args) => {
       let path = "/access/users";
-      if (args.enabled !== undefined) path += `?enabled=${args.enabled ? 1 : 0}`;
+      if (args.enabled !== undefined)
+        path += `?enabled=${args.enabled ? 1 : 0}`;
       const data = await client.get(path);
       return JSON.stringify(data, null, 2);
     },
@@ -42,7 +44,11 @@ export function registerAccessTools(
     description: "Get detailed information about a specific user",
     category: "access",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       userid: z.string().describe("The user ID (e.g. root@pam, user@pve)"),
     },
@@ -60,7 +66,11 @@ export function registerAccessTools(
     description: "List all available roles and their privileges",
     category: "access",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/access/roles");
       return JSON.stringify(data, null, 2);
@@ -73,7 +83,11 @@ export function registerAccessTools(
     description: "List all user groups",
     category: "access",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/access/groups");
       return JSON.stringify(data, null, 2);
@@ -86,7 +100,11 @@ export function registerAccessTools(
     description: "List all access control list entries",
     category: "access",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/access/acl");
       return JSON.stringify(data, null, 2);
@@ -100,7 +118,11 @@ export function registerAccessTools(
       "List all authentication domains/realms (e.g. pam, pve, ldap, ad)",
     category: "access",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/access/domains");
       return JSON.stringify(data, null, 2);
@@ -115,7 +137,11 @@ export function registerAccessTools(
     description: "Create a new user in the PVE access control system",
     category: "access",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       userid: z
         .string()
@@ -124,10 +150,7 @@ export function registerAccessTools(
       email: z.string().optional().describe("User email address"),
       firstname: z.string().optional().describe("First name"),
       lastname: z.string().optional().describe("Last name"),
-      groups: z
-        .string()
-        .optional()
-        .describe("Comma-separated list of groups"),
+      groups: z.string().optional().describe("Comma-separated list of groups"),
       comment: z.string().optional().describe("User comment"),
       enable: z
         .boolean()
@@ -159,21 +182,19 @@ export function registerAccessTools(
     description: "Update an existing user's properties",
     category: "access",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       userid: z.string().describe("The user ID (e.g. john@pve)"),
       email: z.string().optional().describe("User email address"),
       firstname: z.string().optional().describe("First name"),
       lastname: z.string().optional().describe("Last name"),
-      groups: z
-        .string()
-        .optional()
-        .describe("Comma-separated list of groups"),
+      groups: z.string().optional().describe("Comma-separated list of groups"),
       comment: z.string().optional().describe("User comment"),
-      enable: z
-        .boolean()
-        .optional()
-        .describe("Enable or disable the user"),
+      enable: z.boolean().optional().describe("Enable or disable the user"),
       expire: z
         .number()
         .optional()
@@ -202,7 +223,11 @@ export function registerAccessTools(
     description: "Delete a user from the PVE access control system",
     category: "access",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       userid: z.string().describe("The user ID to delete (e.g. john@pve)"),
     },
@@ -221,18 +246,15 @@ export function registerAccessTools(
       "Update access control list — grant or revoke roles for users/groups on specific paths",
     category: "access",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
-      path: z
-        .string()
-        .describe("ACL path (e.g. /, /vms/100, /storage/local)"),
-      roles: z
-        .string()
-        .describe("Comma-separated list of roles to assign"),
-      users: z
-        .string()
-        .optional()
-        .describe("Comma-separated list of user IDs"),
+      path: z.string().describe("ACL path (e.g. /, /vms/100, /storage/local)"),
+      roles: z.string().describe("Comma-separated list of roles to assign"),
+      users: z.string().optional().describe("Comma-separated list of user IDs"),
       groups: z
         .string()
         .optional()

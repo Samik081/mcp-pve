@@ -2,11 +2,11 @@
  * Backup tools: backup jobs, manual backup execution, and job management.
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { registerTool } from "../core/tools.js";
+import type { AppConfig } from "../types/index.js";
 
 export function registerBackupTools(
   server: McpServer,
@@ -21,7 +21,11 @@ export function registerBackupTools(
     description: "List all scheduled backup jobs in the cluster",
     category: "backup",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/cluster/backup");
       return JSON.stringify(data, null, 2);
@@ -34,7 +38,11 @@ export function registerBackupTools(
     description: "Get the configuration of a specific backup job",
     category: "backup",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       id: z.string().describe("The backup job ID"),
     },
@@ -53,17 +61,18 @@ export function registerBackupTools(
       "Run an immediate backup (vzdump) of one or more VMs/containers on a node",
     category: "backup",
     accessTier: "read-execute",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z
         .string()
         .optional()
         .describe("Comma-separated list of VMIDs to back up (omit for all)"),
-      storage: z
-        .string()
-        .optional()
-        .describe("Target storage for the backup"),
+      storage: z.string().optional().describe("Target storage for the backup"),
       mode: z
         .enum(["snapshot", "suspend", "stop"])
         .optional()
@@ -103,16 +112,17 @@ export function registerBackupTools(
     description: "Create a new scheduled backup job",
     category: "backup",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       vmid: z
         .string()
         .optional()
         .describe("Comma-separated list of VMIDs to include (omit for all)"),
-      storage: z
-        .string()
-        .optional()
-        .describe("Target storage for backups"),
+      storage: z.string().optional().describe("Target storage for backups"),
       schedule: z
         .string()
         .optional()
@@ -137,14 +147,8 @@ export function registerBackupTools(
         .boolean()
         .optional()
         .describe("Enable the backup job (default: true)"),
-      node: z
-        .string()
-        .optional()
-        .describe("Restrict to specific node"),
-      pool: z
-        .string()
-        .optional()
-        .describe("Backup all VMs in this pool"),
+      node: z.string().optional().describe("Restrict to specific node"),
+      pool: z.string().optional().describe("Backup all VMs in this pool"),
       maxfiles: z
         .number()
         .optional()
@@ -175,7 +179,11 @@ export function registerBackupTools(
     description: "Delete a scheduled backup job",
     category: "backup",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       id: z.string().describe("The backup job ID to delete"),
     },

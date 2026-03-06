@@ -2,11 +2,11 @@
  * Storage tools: list, status, content, and CRUD for PVE storage backends.
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { registerTool } from "../core/tools.js";
+import type { AppConfig } from "../types/index.js";
 
 export function registerStorageTools(
   server: McpServer,
@@ -21,12 +21,18 @@ export function registerStorageTools(
     description: "List all configured storage backends in the cluster",
     category: "storage",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       type: z
         .string()
         .optional()
-        .describe("Filter by storage type (e.g. dir, lvm, nfs, zfspool, cephfs)"),
+        .describe(
+          "Filter by storage type (e.g. dir, lvm, nfs, zfspool, cephfs)",
+        ),
     },
     handler: async (args) => {
       let path = "/storage";
@@ -42,7 +48,11 @@ export function registerStorageTools(
     description: "Get the configuration of a specific storage backend",
     category: "storage",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       storage: z.string().describe("The storage ID"),
     },
@@ -55,16 +65,23 @@ export function registerStorageTools(
   registerTool(server, config, {
     name: "pve_list_node_storage",
     title: "List Node Storage",
-    description: "List available storage on a specific node with usage information",
+    description:
+      "List available storage on a specific node with usage information",
     category: "storage",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       content: z
         .string()
         .optional()
-        .describe("Filter by content type (e.g. images, rootdir, iso, vztmpl, backup)"),
+        .describe(
+          "Filter by content type (e.g. images, rootdir, iso, vztmpl, backup)",
+        ),
     },
     handler: async (args) => {
       let path = `/nodes/${args.node}/storage`;
@@ -80,7 +97,11 @@ export function registerStorageTools(
     description: "Get the status and usage of a specific storage on a node",
     category: "storage",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       storage: z.string().describe("The storage ID"),
@@ -100,14 +121,20 @@ export function registerStorageTools(
       "List the content (disk images, ISOs, templates, backups) of a specific storage on a node",
     category: "storage",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       storage: z.string().describe("The storage ID"),
       content: z
         .string()
         .optional()
-        .describe("Filter by content type (e.g. images, iso, vztmpl, backup, rootdir)"),
+        .describe(
+          "Filter by content type (e.g. images, iso, vztmpl, backup, rootdir)",
+        ),
     },
     handler: async (args) => {
       let path = `/nodes/${args.node}/storage/${args.storage}/content`;
@@ -125,16 +152,24 @@ export function registerStorageTools(
     description: "Create a new storage backend in the cluster",
     category: "storage",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       storage: z.string().describe("The storage ID"),
       type: z
         .string()
-        .describe("Storage type (e.g. dir, lvm, nfs, zfspool, cifs, cephfs, rbd)"),
+        .describe(
+          "Storage type (e.g. dir, lvm, nfs, zfspool, cifs, cephfs, rbd)",
+        ),
       content: z
         .string()
         .optional()
-        .describe("Allowed content types, comma-separated (e.g. images,rootdir,iso)"),
+        .describe(
+          "Allowed content types, comma-separated (e.g. images,rootdir,iso)",
+        ),
       path: z
         .string()
         .optional()
@@ -143,18 +178,9 @@ export function registerStorageTools(
         .string()
         .optional()
         .describe("Server address (for nfs, cifs, cephfs types)"),
-      export: z
-        .string()
-        .optional()
-        .describe("NFS export path"),
-      vgname: z
-        .string()
-        .optional()
-        .describe("LVM volume group name"),
-      pool: z
-        .string()
-        .optional()
-        .describe("ZFS/Ceph pool name"),
+      export: z.string().optional().describe("NFS export path"),
+      vgname: z.string().optional().describe("LVM volume group name"),
+      pool: z.string().optional().describe("ZFS/Ceph pool name"),
       nodes: z
         .string()
         .optional()
@@ -188,7 +214,11 @@ export function registerStorageTools(
     description: "Update the configuration of an existing storage backend",
     category: "storage",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       storage: z.string().describe("The storage ID"),
       content: z
@@ -203,10 +233,7 @@ export function registerStorageTools(
         .boolean()
         .optional()
         .describe("Whether the storage is shared across nodes"),
-      disable: z
-        .boolean()
-        .optional()
-        .describe("Disable the storage"),
+      disable: z.boolean().optional().describe("Disable the storage"),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = {};
@@ -225,7 +252,11 @@ export function registerStorageTools(
     description: "Delete a storage backend configuration from the cluster",
     category: "storage",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       storage: z.string().describe("The storage ID to delete"),
     },
