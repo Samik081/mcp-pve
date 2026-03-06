@@ -8,6 +8,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { PveClient } from "../core/client.js";
 import type { AppConfig } from "../types/index.js";
+import { validateToolLists } from "../core/tools.js";
 import { registerNodeTools } from "./nodes.js";
 import { registerQemuTools } from "./qemu.js";
 import { registerLxcTools } from "./lxc.js";
@@ -38,4 +39,6 @@ export function registerAllTools(
   registerBackupTools(server, client, config);
   registerTaskTools(server, client, config);
   registerHaTools(server, client, config);
+
+  validateToolLists(config);
 }

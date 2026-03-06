@@ -12,6 +12,8 @@ export function makeConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     tokenSecret: "00000000-0000-0000-0000-000000000000",
     accessTier: "full",
     categories: null,
+    toolBlacklist: null,
+    toolWhitelist: null,
     excludeToolTitles: false,
     verifySsl: false,
     debug: false,

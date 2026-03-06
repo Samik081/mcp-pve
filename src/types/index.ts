@@ -49,6 +49,8 @@ export interface AppConfig {
   tokenSecret: string;
   accessTier: AccessTier;
   categories: string[] | null;
+  toolBlacklist: string[] | null;
+  toolWhitelist: string[] | null;
   excludeToolTitles: boolean;
   verifySsl: boolean;
   debug: boolean;
