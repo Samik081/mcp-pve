@@ -2,11 +2,11 @@
  * Task tools: list, status, log, and management of PVE background tasks.
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { registerTool } from "../core/tools.js";
+import type { AppConfig } from "../types/index.js";
 
 export function registerTaskTools(
   server: McpServer,
@@ -22,21 +22,19 @@ export function registerTaskTools(
       "List recent tasks on a node with optional filters for status, source, and VMID",
     category: "tasks",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
-      start: z
-        .number()
-        .optional()
-        .describe("Start index (default: 0)"),
+      start: z.number().optional().describe("Start index (default: 0)"),
       limit: z
         .number()
         .optional()
         .describe("Max number of tasks to return (default: 50)"),
-      vmid: z
-        .number()
-        .optional()
-        .describe("Filter by VMID"),
+      vmid: z.number().optional().describe("Filter by VMID"),
       typefilter: z
         .string()
         .optional()
@@ -47,7 +45,8 @@ export function registerTaskTools(
       if (args.start !== undefined) params.set("start", String(args.start));
       if (args.limit !== undefined) params.set("limit", String(args.limit));
       if (args.vmid !== undefined) params.set("vmid", String(args.vmid));
-      if (args.typefilter !== undefined) params.set("typefilter", String(args.typefilter));
+      if (args.typefilter !== undefined)
+        params.set("typefilter", String(args.typefilter));
       const qs = params.toString();
       const path = `/nodes/${args.node}/tasks${qs ? `?${qs}` : ""}`;
       const data = await client.get(path);
@@ -61,7 +60,11 @@ export function registerTaskTools(
     description: "Get the status of a specific task by its UPID",
     category: "tasks",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       upid: z.string().describe("The task UPID"),
@@ -80,14 +83,15 @@ export function registerTaskTools(
     description: "Get the log output of a specific task by its UPID",
     category: "tasks",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       upid: z.string().describe("The task UPID"),
-      start: z
-        .number()
-        .optional()
-        .describe("Start line number (default: 0)"),
+      start: z.number().optional().describe("Start line number (default: 0)"),
       limit: z
         .number()
         .optional()
@@ -112,7 +116,11 @@ export function registerTaskTools(
     description: "Stop a running task by its UPID",
     category: "tasks",
     accessTier: "read-execute",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       upid: z.string().describe("The task UPID to stop"),

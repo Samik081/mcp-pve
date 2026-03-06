@@ -2,11 +2,11 @@
  * LXC container tools: list, status, config, snapshots, power actions, and lifecycle.
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { registerTool } from "../core/tools.js";
+import type { AppConfig } from "../types/index.js";
 
 export function registerLxcTools(
   server: McpServer,
@@ -21,7 +21,11 @@ export function registerLxcTools(
     description: "List all LXC containers on a specific node",
     category: "lxc",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
     },
@@ -38,7 +42,11 @@ export function registerLxcTools(
       "Get the current status of an LXC container including CPU, memory, and disk usage",
     category: "lxc",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The container ID"),
@@ -57,7 +65,11 @@ export function registerLxcTools(
     description: "Get the configuration of an LXC container",
     category: "lxc",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The container ID"),
@@ -77,7 +89,11 @@ export function registerLxcTools(
       "Get RRD statistics (CPU, memory, disk, network) for an LXC container over a time period",
     category: "lxc",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The container ID"),
@@ -99,7 +115,11 @@ export function registerLxcTools(
     description: "List all snapshots of an LXC container",
     category: "lxc",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The container ID"),
@@ -115,12 +135,42 @@ export function registerLxcTools(
   // --- Read-execute tools (power actions) ---
 
   const powerActions = [
-    { action: "start", method: "start", desc: "Start", title: "Start LXC Container" },
-    { action: "stop", method: "stop", desc: "Stop (immediate)", title: "Stop LXC Container" },
-    { action: "shutdown", method: "shutdown", desc: "Gracefully shut down", title: "Shutdown LXC Container" },
-    { action: "reboot", method: "reboot", desc: "Reboot", title: "Reboot LXC Container" },
-    { action: "suspend", method: "suspend", desc: "Suspend (freeze)", title: "Suspend LXC Container" },
-    { action: "resume", method: "resume", desc: "Resume (unfreeze)", title: "Resume LXC Container" },
+    {
+      action: "start",
+      method: "start",
+      desc: "Start",
+      title: "Start LXC Container",
+    },
+    {
+      action: "stop",
+      method: "stop",
+      desc: "Stop (immediate)",
+      title: "Stop LXC Container",
+    },
+    {
+      action: "shutdown",
+      method: "shutdown",
+      desc: "Gracefully shut down",
+      title: "Shutdown LXC Container",
+    },
+    {
+      action: "reboot",
+      method: "reboot",
+      desc: "Reboot",
+      title: "Reboot LXC Container",
+    },
+    {
+      action: "suspend",
+      method: "suspend",
+      desc: "Suspend (freeze)",
+      title: "Suspend LXC Container",
+    },
+    {
+      action: "resume",
+      method: "resume",
+      desc: "Resume (unfreeze)",
+      title: "Resume LXC Container",
+    },
   ] as const;
 
   for (const { action, method, desc, title } of powerActions) {
@@ -130,7 +180,11 @@ export function registerLxcTools(
       description: `${desc} an LXC container`,
       category: "lxc",
       accessTier: "read-execute",
-      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+      },
       inputSchema: {
         node: z.string().describe("The node name"),
         vmid: z.number().describe("The container ID"),
@@ -152,26 +206,23 @@ export function registerLxcTools(
     description: "Create a new LXC container",
     category: "lxc",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The container ID"),
       ostemplate: z
         .string()
-        .describe("OS template (e.g. local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst)"),
+        .describe(
+          "OS template (e.g. local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst)",
+        ),
       hostname: z.string().optional().describe("Container hostname"),
-      memory: z
-        .number()
-        .optional()
-        .describe("Memory in MB (default: 512)"),
-      swap: z
-        .number()
-        .optional()
-        .describe("Swap size in MB (default: 512)"),
-      cores: z
-        .number()
-        .optional()
-        .describe("Number of CPU cores (default: 1)"),
+      memory: z.number().optional().describe("Memory in MB (default: 512)"),
+      swap: z.number().optional().describe("Swap size in MB (default: 512)"),
+      cores: z.number().optional().describe("Number of CPU cores (default: 1)"),
       rootfs: z
         .string()
         .optional()
@@ -188,18 +239,12 @@ export function registerLxcTools(
         .boolean()
         .optional()
         .describe("Create as unprivileged container (default: false)"),
-      start: z
-        .boolean()
-        .optional()
-        .describe("Start container after creation"),
+      start: z.boolean().optional().describe("Start container after creation"),
       ssh_public_keys: z
         .string()
         .optional()
         .describe("SSH public keys to add to the container"),
-      storage: z
-        .string()
-        .optional()
-        .describe("Target storage for rootfs"),
+      storage: z.string().optional().describe("Target storage for rootfs"),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = {
@@ -231,14 +276,20 @@ export function registerLxcTools(
       "Delete an LXC container and all its data. The container must be stopped first.",
     category: "lxc",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The container ID"),
       purge: z
         .boolean()
         .optional()
-        .describe("Remove from all related configurations (e.g. backup jobs, HA)"),
+        .describe(
+          "Remove from all related configurations (e.g. backup jobs, HA)",
+        ),
       force: z
         .boolean()
         .optional()
@@ -267,7 +318,11 @@ export function registerLxcTools(
     description: "Update the configuration of an LXC container",
     category: "lxc",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The container ID"),
@@ -276,14 +331,8 @@ export function registerLxcTools(
       swap: z.number().optional().describe("Swap size in MB"),
       cores: z.number().optional().describe("Number of CPU cores"),
       description: z.string().optional().describe("Container description"),
-      onboot: z
-        .boolean()
-        .optional()
-        .describe("Start on boot"),
-      net0: z
-        .string()
-        .optional()
-        .describe("Network device config"),
+      onboot: z.boolean().optional().describe("Start on boot"),
+      net0: z.string().optional().describe("Network device config"),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = {};
@@ -294,10 +343,7 @@ export function registerLxcTools(
       if (args.description !== undefined) body.description = args.description;
       if (args.onboot !== undefined) body.onboot = args.onboot ? 1 : 0;
       if (args.net0 !== undefined) body.net0 = args.net0;
-      await client.put(
-        `/nodes/${args.node}/lxc/${args.vmid}/config`,
-        body,
-      );
+      await client.put(`/nodes/${args.node}/lxc/${args.vmid}/config`, body);
       return `Container ${args.vmid} configuration updated on node ${args.node}.`;
     },
   });
@@ -308,12 +354,19 @@ export function registerLxcTools(
     description: "Clone an LXC container to create a new container from it",
     category: "lxc",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The source node name"),
       vmid: z.number().describe("The source container ID"),
       newid: z.number().describe("The new container ID for the clone"),
-      hostname: z.string().optional().describe("Hostname for the cloned container"),
+      hostname: z
+        .string()
+        .optional()
+        .describe("Hostname for the cloned container"),
       target: z
         .string()
         .optional()
@@ -326,14 +379,8 @@ export function registerLxcTools(
         .string()
         .optional()
         .describe("Description for the cloned container"),
-      snapname: z
-        .string()
-        .optional()
-        .describe("Snapshot name to clone from"),
-      storage: z
-        .string()
-        .optional()
-        .describe("Target storage for full clone"),
+      snapname: z.string().optional().describe("Snapshot name to clone from"),
+      storage: z.string().optional().describe("Target storage for full clone"),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = { newid: args.newid };
@@ -357,7 +404,11 @@ export function registerLxcTools(
     description: "Create a snapshot of an LXC container",
     category: "lxc",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The container ID"),
@@ -384,7 +435,11 @@ export function registerLxcTools(
     description: "Delete a snapshot of an LXC container",
     category: "lxc",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The container ID"),
@@ -404,7 +459,11 @@ export function registerLxcTools(
     description: "Rollback an LXC container to a previous snapshot state",
     category: "lxc",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The container ID"),

@@ -2,11 +2,11 @@
  * Cluster tools: status, resources, options, and cluster-wide information.
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { registerTool } from "../core/tools.js";
+import type { AppConfig } from "../types/index.js";
 
 export function registerClusterTools(
   server: McpServer,
@@ -18,10 +18,15 @@ export function registerClusterTools(
   registerTool(server, config, {
     name: "pve_get_cluster_status",
     title: "Get Cluster Status",
-    description: "Get the current cluster status including node membership and quorum",
+    description:
+      "Get the current cluster status including node membership and quorum",
     category: "cluster",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/cluster/status");
       return JSON.stringify(data, null, 2);
@@ -35,7 +40,11 @@ export function registerClusterTools(
       "List all cluster resources (VMs, containers, storage, nodes) with optional type filter",
     category: "cluster",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       type: z
         .enum(["vm", "storage", "node", "sdn"])
@@ -56,7 +65,11 @@ export function registerClusterTools(
     description: "Get the next available VMID in the cluster",
     category: "cluster",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/cluster/nextid");
       return `Next available VMID: ${data}`;
@@ -69,7 +82,11 @@ export function registerClusterTools(
     description: "Get recent cluster log entries",
     category: "cluster",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
       max: z
         .number()
@@ -90,7 +107,11 @@ export function registerClusterTools(
     description: "Get cluster-wide datacenter options",
     category: "cluster",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/cluster/options");
       return JSON.stringify(data, null, 2);
@@ -103,7 +124,11 @@ export function registerClusterTools(
     description: "List guests that are not covered by any backup job",
     category: "cluster",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/cluster/backup-info/not-backed-up");
       return JSON.stringify(data, null, 2);
@@ -116,7 +141,11 @@ export function registerClusterTools(
     description: "Get the current HA manager status",
     category: "cluster",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/cluster/ha/status/current");
       return JSON.stringify(data, null, 2);
@@ -129,7 +158,11 @@ export function registerClusterTools(
     description: "List all replication jobs in the cluster",
     category: "cluster",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/cluster/replication");
       return JSON.stringify(data, null, 2);
@@ -144,24 +177,22 @@ export function registerClusterTools(
     description: "Update cluster-wide datacenter options",
     category: "cluster",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       keyboard: z
         .string()
         .optional()
         .describe("Default keyboard layout for VNC"),
-      language: z
-        .string()
-        .optional()
-        .describe("Default GUI language"),
+      language: z.string().optional().describe("Default GUI language"),
       console: z
         .enum(["applet", "vv", "html5", "xtermjs"])
         .optional()
         .describe("Default console viewer"),
-      http_proxy: z
-        .string()
-        .optional()
-        .describe("HTTP proxy configuration"),
+      http_proxy: z.string().optional().describe("HTTP proxy configuration"),
       migration_unsecure: z
         .boolean()
         .optional()
@@ -174,7 +205,7 @@ export function registerClusterTools(
       if (args.console !== undefined) body.console = args.console;
       if (args.http_proxy !== undefined) body.http_proxy = args.http_proxy;
       if (args.migration_unsecure !== undefined)
-        body["migration_unsecure"] = args.migration_unsecure ? 1 : 0;
+        body.migration_unsecure = args.migration_unsecure ? 1 : 0;
       await client.put("/cluster/options", body);
       return "Cluster options updated successfully.";
     },

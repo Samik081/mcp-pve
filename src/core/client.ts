@@ -7,7 +7,11 @@
  */
 
 import type { AppConfig } from "../types/index.js";
-import { PveError, registerSensitivePattern, sanitizeMessage } from "./errors.js";
+import {
+  PveError,
+  registerSensitivePattern,
+  sanitizeMessage,
+} from "./errors.js";
 import { logger } from "./logger.js";
 
 /** Request timeout in milliseconds. */
@@ -71,7 +75,9 @@ export class PveClient {
         );
       }
 
-      const json = (await response.json()) as { data?: { version?: string; release?: string } };
+      const json = (await response.json()) as {
+        data?: { version?: string; release?: string };
+      };
       const version = json.data?.version ?? "unknown";
       const release = json.data?.release ?? "";
       logger.info(
@@ -116,7 +122,9 @@ export class PveClient {
       if (!response.ok) {
         let detail = `${response.status} ${response.statusText}`;
         try {
-          const errBody = (await response.json()) as { errors?: Record<string, string> };
+          const errBody = (await response.json()) as {
+            errors?: Record<string, string>;
+          };
           if (errBody.errors) {
             const messages = Object.entries(errBody.errors)
               .map(([k, v]) => `${k}: ${v}`)
@@ -144,9 +152,7 @@ export class PveClient {
     } catch (err) {
       if (err instanceof PveError) throw err;
       throw new PveError(
-        sanitizeMessage(
-          err instanceof Error ? err.message : String(err),
-        ),
+        sanitizeMessage(err instanceof Error ? err.message : String(err)),
       );
     }
   }
@@ -171,9 +177,7 @@ export async function validateConnection(client: PveClient): Promise<void> {
   try {
     await client.validateConnection();
   } catch (error) {
-    logger.error(
-      "Failed to connect to Proxmox VE.",
-    );
+    logger.error("Failed to connect to Proxmox VE.");
     logger.error(
       "Check that PVE_BASE_URL is correct and the PVE host is reachable.",
     );

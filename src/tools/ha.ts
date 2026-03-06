@@ -4,11 +4,11 @@
  * SID format: type:vmid (e.g. vm:100, ct:200)
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { registerTool } from "../core/tools.js";
+import type { AppConfig } from "../types/index.js";
 
 export function registerHaTools(
   server: McpServer,
@@ -23,12 +23,13 @@ export function registerHaTools(
     description: "List all HA-managed resources in the cluster",
     category: "ha",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
-      type: z
-        .enum(["vm", "ct"])
-        .optional()
-        .describe("Filter by resource type"),
+      type: z.enum(["vm", "ct"]).optional().describe("Filter by resource type"),
     },
     handler: async (args) => {
       let path = "/cluster/ha/resources";
@@ -45,11 +46,13 @@ export function registerHaTools(
       "Get the HA configuration for a specific resource. SID format: type:vmid (e.g. vm:100)",
     category: "ha",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     inputSchema: {
-      sid: z
-        .string()
-        .describe("The HA resource SID (e.g. vm:100, ct:200)"),
+      sid: z.string().describe("The HA resource SID (e.g. vm:100, ct:200)"),
     },
     handler: async (args) => {
       const data = await client.get(
@@ -68,13 +71,14 @@ export function registerHaTools(
       "Add a VM or container to HA management. SID format: type:vmid (e.g. vm:100)",
     category: "ha",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
       sid: z.string().describe("The resource SID (e.g. vm:100, ct:200)"),
-      group: z
-        .string()
-        .optional()
-        .describe("HA group name"),
+      group: z.string().optional().describe("HA group name"),
       max_relocate: z
         .number()
         .optional()
@@ -92,7 +96,8 @@ export function registerHaTools(
     handler: async (args) => {
       const body: Record<string, unknown> = { sid: args.sid };
       if (args.group !== undefined) body.group = args.group;
-      if (args.max_relocate !== undefined) body.max_relocate = args.max_relocate;
+      if (args.max_relocate !== undefined)
+        body.max_relocate = args.max_relocate;
       if (args.max_restart !== undefined) body.max_restart = args.max_restart;
       if (args.state !== undefined) body.state = args.state;
       if (args.comment !== undefined) body.comment = args.comment;
@@ -107,7 +112,11 @@ export function registerHaTools(
     description: "Update the HA configuration for an existing managed resource",
     category: "ha",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       sid: z.string().describe("The resource SID (e.g. vm:100, ct:200)"),
       group: z.string().optional().describe("HA group name"),
@@ -128,7 +137,8 @@ export function registerHaTools(
     handler: async (args) => {
       const body: Record<string, unknown> = {};
       if (args.group !== undefined) body.group = args.group;
-      if (args.max_relocate !== undefined) body.max_relocate = args.max_relocate;
+      if (args.max_relocate !== undefined)
+        body.max_relocate = args.max_relocate;
       if (args.max_restart !== undefined) body.max_restart = args.max_restart;
       if (args.state !== undefined) body.state = args.state;
       if (args.comment !== undefined) body.comment = args.comment;
@@ -147,7 +157,11 @@ export function registerHaTools(
       "Remove a VM or container from HA management (does not delete the VM/container itself)",
     category: "ha",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       sid: z.string().describe("The resource SID to remove (e.g. vm:100)"),
     },

@@ -2,11 +2,11 @@
  * Firewall tools: cluster-level firewall options, rules, aliases, and IP sets.
  */
 
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { registerTool } from "../core/tools.js";
+import type { AppConfig } from "../types/index.js";
 
 export function registerFirewallTools(
   server: McpServer,
@@ -21,7 +21,11 @@ export function registerFirewallTools(
     description: "Get the cluster-level firewall options",
     category: "firewall",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/cluster/firewall/options");
       return JSON.stringify(data, null, 2);
@@ -34,7 +38,11 @@ export function registerFirewallTools(
     description: "List all cluster-level firewall rules",
     category: "firewall",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/cluster/firewall/rules");
       return JSON.stringify(data, null, 2);
@@ -44,10 +52,15 @@ export function registerFirewallTools(
   registerTool(server, config, {
     name: "pve_list_firewall_aliases",
     title: "List Firewall Aliases",
-    description: "List all cluster-level firewall aliases (named IP/CIDR entries)",
+    description:
+      "List all cluster-level firewall aliases (named IP/CIDR entries)",
     category: "firewall",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/cluster/firewall/aliases");
       return JSON.stringify(data, null, 2);
@@ -60,7 +73,11 @@ export function registerFirewallTools(
     description: "List all cluster-level firewall IP sets",
     category: "firewall",
     accessTier: "read-only",
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
     handler: async () => {
       const data = await client.get("/cluster/firewall/ipset");
       return JSON.stringify(data, null, 2);
@@ -72,10 +89,15 @@ export function registerFirewallTools(
   registerTool(server, config, {
     name: "pve_update_firewall_options",
     title: "Update Firewall Options",
-    description: "Update the cluster-level firewall options (e.g. enable/disable firewall)",
+    description:
+      "Update the cluster-level firewall options (e.g. enable/disable firewall)",
     category: "firewall",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       enable: z
         .boolean()
@@ -112,36 +134,23 @@ export function registerFirewallTools(
     description: "Create a new cluster-level firewall rule",
     category: "firewall",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
     inputSchema: {
-      action: z
-        .enum(["ACCEPT", "DROP", "REJECT"])
-        .describe("Rule action"),
+      action: z.enum(["ACCEPT", "DROP", "REJECT"]).describe("Rule action"),
       type: z.enum(["in", "out", "group"]).describe("Rule type (direction)"),
       enable: z
         .boolean()
         .optional()
         .describe("Enable the rule (default: true)"),
-      source: z
-        .string()
-        .optional()
-        .describe("Source address/CIDR or alias"),
-      dest: z
-        .string()
-        .optional()
-        .describe("Destination address/CIDR or alias"),
-      proto: z
-        .string()
-        .optional()
-        .describe("Protocol (e.g. tcp, udp, icmp)"),
-      dport: z
-        .string()
-        .optional()
-        .describe("Destination port or port range"),
-      sport: z
-        .string()
-        .optional()
-        .describe("Source port or port range"),
+      source: z.string().optional().describe("Source address/CIDR or alias"),
+      dest: z.string().optional().describe("Destination address/CIDR or alias"),
+      proto: z.string().optional().describe("Protocol (e.g. tcp, udp, icmp)"),
+      dport: z.string().optional().describe("Destination port or port range"),
+      sport: z.string().optional().describe("Source port or port range"),
       comment: z.string().optional().describe("Rule comment"),
       pos: z
         .number()
@@ -172,27 +181,22 @@ export function registerFirewallTools(
     description: "Update an existing cluster-level firewall rule by position",
     category: "firewall",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
     inputSchema: {
       pos: z.number().describe("Rule position (0-based index)"),
       action: z
         .enum(["ACCEPT", "DROP", "REJECT"])
         .optional()
         .describe("Rule action"),
-      enable: z
-        .boolean()
-        .optional()
-        .describe("Enable or disable the rule"),
+      enable: z.boolean().optional().describe("Enable or disable the rule"),
       source: z.string().optional().describe("Source address/CIDR or alias"),
-      dest: z
-        .string()
-        .optional()
-        .describe("Destination address/CIDR or alias"),
+      dest: z.string().optional().describe("Destination address/CIDR or alias"),
       proto: z.string().optional().describe("Protocol"),
-      dport: z
-        .string()
-        .optional()
-        .describe("Destination port or port range"),
+      dport: z.string().optional().describe("Destination port or port range"),
       sport: z.string().optional().describe("Source port or port range"),
       comment: z.string().optional().describe("Rule comment"),
     },
@@ -217,7 +221,11 @@ export function registerFirewallTools(
     description: "Delete a cluster-level firewall rule by position",
     category: "firewall",
     accessTier: "full",
-    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
     inputSchema: {
       pos: z.number().describe("Rule position (0-based index) to delete"),
     },

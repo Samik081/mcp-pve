@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { PveClient } from "../core/client.js";
 import { createServer } from "../core/server.js";
 import { registerAllTools } from "../tools/index.js";
-import { makeConfig, makeMockClient, connectTestClient } from "./helpers.js";
-import type { PveClient } from "../core/client.js";
-import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { connectTestClient, makeConfig, makeMockClient } from "./helpers.js";
 
 describe("handler: pve_list_nodes", () => {
   let cleanup: () => Promise<void>;
@@ -39,7 +39,9 @@ describe("handler: pve_list_nodes", () => {
   });
 
   it("returns isError when client throws", async () => {
-    vi.mocked(mockClient.get).mockRejectedValueOnce(new Error("connection refused"));
+    vi.mocked(mockClient.get).mockRejectedValueOnce(
+      new Error("connection refused"),
+    );
 
     const result = await mcpClient.callTool({
       name: "pve_list_nodes",
@@ -96,7 +98,11 @@ describe("handler: pve_get_node_status", () => {
 describe("handler: pve_manage_node_service (read-execute)", () => {
   it("is not registered in read-only mode", async () => {
     const server = createServer();
-    registerAllTools(server, makeMockClient(), makeConfig({ accessTier: "read-only" }));
+    registerAllTools(
+      server,
+      makeMockClient(),
+      makeConfig({ accessTier: "read-only" }),
+    );
     const { client, cleanup } = await connectTestClient(server);
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name)).not.toContain("pve_manage_node_service");

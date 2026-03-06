@@ -7,20 +7,20 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { PveClient } from "../core/client.js";
-import type { AppConfig } from "../types/index.js";
 import { validateToolLists } from "../core/tools.js";
-import { registerNodeTools } from "./nodes.js";
-import { registerQemuTools } from "./qemu.js";
-import { registerLxcTools } from "./lxc.js";
-import { registerStorageTools } from "./storage.js";
-import { registerClusterTools } from "./cluster.js";
+import type { AppConfig } from "../types/index.js";
 import { registerAccessTools } from "./access.js";
-import { registerPoolTools } from "./pools.js";
-import { registerNetworkTools } from "./network.js";
-import { registerFirewallTools } from "./firewall.js";
 import { registerBackupTools } from "./backup.js";
-import { registerTaskTools } from "./tasks.js";
+import { registerClusterTools } from "./cluster.js";
+import { registerFirewallTools } from "./firewall.js";
 import { registerHaTools } from "./ha.js";
+import { registerLxcTools } from "./lxc.js";
+import { registerNetworkTools } from "./network.js";
+import { registerNodeTools } from "./nodes.js";
+import { registerPoolTools } from "./pools.js";
+import { registerQemuTools } from "./qemu.js";
+import { registerStorageTools } from "./storage.js";
+import { registerTaskTools } from "./tasks.js";
 
 export function registerAllTools(
   server: McpServer,
