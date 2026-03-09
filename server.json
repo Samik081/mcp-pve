@@ -1,8 +1,9 @@
 {
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.samik081/mcp-pve",
   "version": "0.4.1",
   "title": "Proxmox VE MCP Server",
-  "description": "MCP server for Proxmox VE — manage virtual machines, containers, storage, networking, and clusters through AI coding tools",
+  "description": "Manage Proxmox VE through AI assistants",
   "license": "MIT",
   "repository": {
     "type": "git",
