@@ -1,6 +1,6 @@
 {
   "name": "@samik081/mcp-pve",
-  "mcpName": "io.github.samik081/mcp-pve",
+  "mcpName": "io.github.Samik081/mcp-pve",
   "version": "0.4.2",
   "description": "Manage Proxmox VE through AI assistants",
   "type": "module",
