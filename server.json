@@ -41,7 +41,6 @@
     },
     {
       "registryType": "oci",
-      "registryBaseUrl": "https://ghcr.io",
       "identifier": "ghcr.io/samik081/mcp-pve:0.4.4",
       "version": "0.4.4",
       "runtimeHint": "docker",
