@@ -6,57 +6,61 @@
   "description": "Manage Proxmox VE through AI assistants",
   "license": "MIT",
   "repository": {
-    "type": "git",
-    "url": "https://github.com/Samik081/mcp-pve.git"
+    "url": "https://github.com/Samik081/mcp-pve",
+    "source": "github"
   },
   "packages": [
     {
       "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@samik081/mcp-pve",
       "version": "0.4.3",
       "runtimeHint": "node",
-      "environment_variables": [
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
         {
           "name": "PVE_BASE_URL",
           "description": "URL of the Proxmox VE instance (e.g. https://pve.example.com:8006)",
-          "required": true
+          "isRequired": true
         },
         {
           "name": "PVE_TOKEN_ID",
           "description": "Proxmox VE API token ID (e.g. user@pam!token-name)",
-          "required": true,
-          "secret": true
+          "isRequired": true,
+          "isSecret": true
         },
         {
           "name": "PVE_TOKEN_SECRET",
           "description": "Proxmox VE API token secret",
-          "required": true,
-          "secret": true
+          "isRequired": true,
+          "isSecret": true
         }
       ]
     },
     {
       "registryType": "oci",
+      "registryBaseUrl": "https://ghcr.io",
       "identifier": "ghcr.io/samik081/mcp-pve:0.4.3",
       "version": "0.4.3",
       "runtimeHint": "docker",
-      "environment_variables": [
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
         {
           "name": "PVE_BASE_URL",
           "description": "URL of the Proxmox VE instance (e.g. https://pve.example.com:8006)",
-          "required": true
+          "isRequired": true
         },
         {
           "name": "PVE_TOKEN_ID",
           "description": "Proxmox VE API token ID (e.g. user@pam!token-name)",
-          "required": true,
-          "secret": true
+          "isRequired": true,
+          "isSecret": true
         },
         {
           "name": "PVE_TOKEN_SECRET",
           "description": "Proxmox VE API token secret",
-          "required": true,
-          "secret": true
+          "isRequired": true,
+          "isSecret": true
         }
       ]
     }
