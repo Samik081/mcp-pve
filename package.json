@@ -1,5 +1,6 @@
 {
   "name": "@samik081/mcp-pve",
+  "mcpName": "io.github.samik081/mcp-pve",
   "version": "0.4.0",
   "description": "MCP server for Proxmox VE — manage virtual machines, containers, storage, networking, and clusters through AI coding tools",
   "type": "module",

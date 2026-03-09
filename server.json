@@ -1,0 +1,63 @@
+{
+  "name": "io.github.samik081/mcp-pve",
+  "version": "0.4.0",
+  "title": "Proxmox VE MCP Server",
+  "description": "MCP server for Proxmox VE — manage virtual machines, containers, storage, networking, and clusters through AI coding tools",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Samik081/mcp-pve.git"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@samik081/mcp-pve",
+      "version": "0.4.0",
+      "runtimeHint": "node",
+      "environment_variables": [
+        {
+          "name": "PVE_BASE_URL",
+          "description": "URL of the Proxmox VE instance (e.g. https://pve.example.com:8006)",
+          "required": true
+        },
+        {
+          "name": "PVE_TOKEN_ID",
+          "description": "Proxmox VE API token ID (e.g. user@pam!token-name)",
+          "required": true,
+          "secret": true
+        },
+        {
+          "name": "PVE_TOKEN_SECRET",
+          "description": "Proxmox VE API token secret",
+          "required": true,
+          "secret": true
+        }
+      ]
+    },
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/samik081/mcp-pve:0.4.0",
+      "version": "0.4.0",
+      "runtimeHint": "docker",
+      "environment_variables": [
+        {
+          "name": "PVE_BASE_URL",
+          "description": "URL of the Proxmox VE instance (e.g. https://pve.example.com:8006)",
+          "required": true
+        },
+        {
+          "name": "PVE_TOKEN_ID",
+          "description": "Proxmox VE API token ID (e.g. user@pam!token-name)",
+          "required": true,
+          "secret": true
+        },
+        {
+          "name": "PVE_TOKEN_SECRET",
+          "description": "Proxmox VE API token secret",
+          "required": true,
+          "secret": true
+        }
+      ]
+    }
+  ]
+}
