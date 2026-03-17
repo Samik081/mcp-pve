@@ -21,7 +21,7 @@ export const logger = {
     console.error(PREFIX, "ERROR", ...args);
   },
   debug: (...args: unknown[]): void => {
-    if (process.env.DEBUG) {
+    if (process.env.DEBUG === "true") {
       console.error(PREFIX, "DEBUG", ...args);
     }
   },
