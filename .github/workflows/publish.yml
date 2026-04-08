@@ -40,7 +40,7 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run build
-      - run: npm publish --access public
+      - run: npm publish --access public --provenance
 
   docker:
     name: Build & Push Docker Image
