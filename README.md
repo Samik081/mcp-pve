@@ -18,6 +18,10 @@ MCP server for [Proxmox VE](https://www.proxmox.com/en/proxmox-virtual-environme
 - **Remote MCP** via HTTP transport (`MCP_TRANSPORT=http`) using the Streamable HTTP protocol
 - **TypeScript/ESM** with full type safety
 
+## API Compatibility
+
+Tested with Proxmox VE **9.0.10**.
+
 ## Quick Start
 
 Run the server directly with npx:
