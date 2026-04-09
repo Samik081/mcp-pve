@@ -52,9 +52,13 @@ async function main(): Promise<void> {
 
   logger.info(`Access tier: ${config.accessTier}`);
 
-  const server = createServer();
-  registerAllTools(server, client, config);
-  await startServer(server, config);
+  const serverFactory = () => {
+    const s = createServer();
+    registerAllTools(s, client, config);
+    return s;
+  };
+  const server = serverFactory();
+  await startServer(server, config, serverFactory);
 }
 
 main().catch((error) => {

@@ -14,6 +14,7 @@ import {
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import pkg from "../../package.json" with { type: "json" };
 import type { AppConfig } from "../types/index.js";
 import { logger } from "./logger.js";
@@ -30,9 +31,13 @@ export function createServer(): McpServer {
 export async function startServer(
   server: McpServer,
   config: AppConfig,
+  serverFactory?: () => McpServer,
 ): Promise<void> {
   if (config.transport === "http") {
-    await startHttpServer(server, config);
+    if (!serverFactory) {
+      throw new Error("serverFactory is required for HTTP transport");
+    }
+    await startHttpServer(config, serverFactory);
   } else {
     const transport = new StdioServerTransport();
     logger.info(`${SERVER_NAME} v${pkg.version} listening on stdio`);
@@ -64,16 +69,12 @@ async function parseJsonBody(req: IncomingMessage): Promise<unknown> {
 }
 
 async function startHttpServer(
-  server: McpServer,
   config: AppConfig,
+  serverFactory: () => McpServer,
 ): Promise<void> {
   const { httpHost, httpPort } = config;
 
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: () => randomUUID(),
-  });
-
-  await server.connect(transport);
+  const sessions = new Map<string, StreamableHTTPServerTransport>();
 
   const httpServer = createHttpServer(
     async (req: IncomingMessage, res: ServerResponse) => {
@@ -95,9 +96,70 @@ async function startHttpServer(
         try {
           if (req.method === "POST") {
             const body = await parseJsonBody(req);
-            await transport.handleRequest(req, res, body);
+            const sessionId = req.headers["mcp-session-id"] as
+              | string
+              | undefined;
+
+            const existing = sessionId ? sessions.get(sessionId) : undefined;
+
+            if (existing) {
+              await existing.handleRequest(req, res, body);
+            } else if (!sessionId && isInitializeRequest(body)) {
+              const transport = new StreamableHTTPServerTransport({
+                sessionIdGenerator: () => randomUUID(),
+                onsessioninitialized: (id: string) => {
+                  sessions.set(id, transport);
+                  logger.debug(`Session initialized: ${id}`);
+                },
+              });
+
+              transport.onclose = () => {
+                const sid = transport.sessionId;
+                if (sid) {
+                  sessions.delete(sid);
+                  logger.debug(`Session closed: ${sid}`);
+                }
+              };
+
+              const server = serverFactory();
+              await server.connect(transport);
+              await transport.handleRequest(req, res, body);
+            } else {
+              res.writeHead(400, { "Content-Type": "application/json" });
+              res.end(
+                JSON.stringify({
+                  jsonrpc: "2.0",
+                  error: {
+                    code: -32000,
+                    message: "Bad Request: No valid session ID provided",
+                  },
+                  id: null,
+                }),
+              );
+            }
+          } else if (req.method === "GET" || req.method === "DELETE") {
+            const sessionId = req.headers["mcp-session-id"] as
+              | string
+              | undefined;
+            const transport = sessionId ? sessions.get(sessionId) : undefined;
+            if (transport) {
+              await transport.handleRequest(req, res);
+            } else {
+              res.writeHead(400, { "Content-Type": "application/json" });
+              res.end(
+                JSON.stringify({
+                  jsonrpc: "2.0",
+                  error: {
+                    code: -32000,
+                    message: "Bad Request: Invalid or missing session ID",
+                  },
+                  id: null,
+                }),
+              );
+            }
           } else {
-            await transport.handleRequest(req, res);
+            res.writeHead(405, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Method not allowed" }));
           }
         } catch (err) {
           logger.error("MCP request handling error:", err);
@@ -132,7 +194,11 @@ async function startHttpServer(
   const shutdown = async (signal: string): Promise<void> => {
     logger.info(`Received ${signal}, shutting down...`);
     await new Promise<void>((resolve) => httpServer.close(() => resolve()));
-    await transport.close();
+    for (const [id, transport] of sessions) {
+      logger.debug(`Closing session: ${id}`);
+      await transport.close();
+    }
+    sessions.clear();
     process.exit(0);
   };
 
