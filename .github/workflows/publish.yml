@@ -39,13 +39,22 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run build
-      - run: npm publish --provenance --access public
+      - name: Publish to npm (skip if version already published)
+        run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          if [ -n "$(npm view "$name@$version" version 2>/dev/null)" ]; then
+            echo "::notice::$name@$version already on npm — skipping publish"
+          else
+            npm publish --provenance --access public
+          fi
 
   docker:
     name: Build & Push Docker Image
     if: github.event_name == 'release'
     needs: ci
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
