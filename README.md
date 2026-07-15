@@ -9,7 +9,7 @@ MCP server for [Proxmox VE](https://www.proxmox.com/en/proxmox-virtual-environme
 
 ## Features
 
-- **105 tools** across **12 categories** covering the Proxmox VE REST API
+- **117 tools** across **12 categories** covering the Proxmox VE REST API
 - **Three access tiers** (`read-only`, `read-execute`, `full`) for granular control
 - **Category filtering** via `PVE_CATEGORIES` to expose only the tools you need
 - **Zero HTTP dependencies** -- uses native `fetch` (Node 18+)
@@ -20,7 +20,7 @@ MCP server for [Proxmox VE](https://www.proxmox.com/en/proxmox-virtual-environme
 
 ## API Compatibility
 
-Tested with Proxmox VE **9.0.10**.
+Tested with Proxmox VE **9.2.4**.
 
 ## Quick Start
 
@@ -144,15 +144,15 @@ Control which tools are available using the `PVE_ACCESS_TIER` environment variab
 
 | Tier | Tools | Description |
 |------|-------|-------------|
-| `full` (default) | 105 | Read, execute, and write -- full control |
-| `read-execute` | 68 | Read and execute -- no resource creation/deletion |
-| `read-only` | 51 | Read only -- safe for exploration, no state changes |
+| `full` (default) | 117 | Read, execute, and write -- full control |
+| `read-execute` | 75 | Read and execute -- no resource creation/deletion |
+| `read-only` | 53 | Read only -- safe for exploration, no state changes |
 
 **Tier details:**
 
-- **full**: All 105 tools. Includes creating/deleting VMs, containers, storage, users, firewall rules, and more.
-- **read-execute**: 68 tools. All read tools plus power actions (start, stop, migrate), backup execution, and task management.
-- **read-only**: 51 tools. List, get, status, and log tools only. No state changes.
+- **full**: All 117 tools. Includes creating/deleting VMs, containers, storage, users, firewall rules, and more.
+- **read-execute**: 75 tools. All read tools plus power actions (start, stop, migrate), bulk guest actions, OCI image pull, backup execution, and task management.
+- **read-only**: 53 tools. List, get, status, and log tools only. No state changes.
 
 Tools that are not available in your tier are not registered with the MCP server. They will not appear in your AI tool's tool list, keeping the context clean.
 
@@ -182,7 +182,7 @@ Create API tokens in the PVE UI under **Datacenter > Permissions > API Tokens**.
 
 ## Tools
 
-mcp-pve provides 105 tools organized by category. Each tool's Access column shows the minimum tier required: `read-only` (available in all tiers), `read-execute` (requires `read-execute` or `full`), or `full` (requires `full` tier only). The Hints column shows tool behavior: `read-only` (no state changes), `destructive` (modifies existing state), `idempotent` (same result if called twice).
+mcp-pve provides 117 tools organized by category. Each tool's Access column shows the minimum tier required: `read-only` (available in all tiers), `read-execute` (requires `read-execute` or `full`), or `full` (requires `full` tier only). The Hints column shows tool behavior: `read-only` (no state changes), `destructive` (modifies existing state), `idempotent` (same result if called twice).
 
 <details>
 <summary>Nodes (8 tools)</summary>
@@ -255,7 +255,7 @@ mcp-pve provides 105 tools organized by category. Each tool's Access column show
 </details>
 
 <details>
-<summary>Storage (8 tools)</summary>
+<summary>Storage (9 tools)</summary>
 
 | Tool | Description | Access | Hints |
 |------|-------------|--------|-------|
@@ -264,6 +264,7 @@ mcp-pve provides 105 tools organized by category. Each tool's Access column show
 | `pve_list_node_storage` | List available storage on a node with usage info | read-only | read-only, idempotent |
 | `pve_get_storage_status` | Get storage status and usage on a node | read-only | read-only, idempotent |
 | `pve_list_storage_content` | List storage content (images, ISOs, backups) | read-only | read-only, idempotent |
+| `pve_pull_oci_image` | Pull an OCI container image into a storage's template cache (PVE 9.1+) | read-execute | — |
 | `pve_create_storage` | Create a new storage backend | full | — |
 | `pve_update_storage` | Update storage configuration | full | destructive, idempotent |
 | `pve_delete_storage` | Delete a storage backend | full | destructive |
@@ -271,7 +272,7 @@ mcp-pve provides 105 tools organized by category. Each tool's Access column show
 </details>
 
 <details>
-<summary>Cluster (9 tools)</summary>
+<summary>Cluster (13 tools)</summary>
 
 | Tool | Description | Access | Hints |
 |------|-------------|--------|-------|
@@ -283,6 +284,10 @@ mcp-pve provides 105 tools organized by category. Each tool's Access column show
 | `pve_list_cluster_backup_info` | List guests not covered by backup jobs | read-only | read-only, idempotent |
 | `pve_get_cluster_ha_status` | Get HA manager status | read-only | read-only, idempotent |
 | `pve_list_cluster_replication` | List all replication jobs | read-only | read-only, idempotent |
+| `pve_bulk_start_guests` | Bulk start VMs/containers cluster-wide (PVE 9.1+) | read-execute | destructive |
+| `pve_bulk_shutdown_guests` | Bulk shutdown VMs/containers cluster-wide (PVE 9.1+) | read-execute | destructive |
+| `pve_bulk_suspend_guests` | Bulk suspend VMs cluster-wide (PVE 9.1+) | read-execute | destructive |
+| `pve_bulk_migrate_guests` | Bulk migrate VMs/containers to a target node (PVE 9.1+) | read-execute | destructive |
 | `pve_update_cluster_options` | Update datacenter options | full | destructive, idempotent |
 
 </details>
@@ -373,15 +378,24 @@ mcp-pve provides 105 tools organized by category. Each tool's Access column show
 </details>
 
 <details>
-<summary>High Availability (5 tools)</summary>
+<summary>High Availability (12 tools)</summary>
 
 | Tool | Description | Access | Hints |
 |------|-------------|--------|-------|
 | `pve_list_ha_resources` | List all HA-managed resources | read-only | read-only, idempotent |
 | `pve_get_ha_resource` | Get HA configuration for a resource | read-only | read-only, idempotent |
+| `pve_list_ha_rules` | List HA rules (node/resource affinity) | read-only | read-only, idempotent |
+| `pve_get_ha_rule` | Get HA rule configuration | read-only | read-only, idempotent |
 | `pve_create_ha_resource` | Add a VM/container to HA management | full | — |
 | `pve_update_ha_resource` | Update HA resource configuration | full | destructive, idempotent |
 | `pve_delete_ha_resource` | Remove a resource from HA management | full | destructive |
+| `pve_create_ha_rule` | Create an HA rule | full | — |
+| `pve_update_ha_rule` | Update an HA rule | full | destructive, idempotent |
+| `pve_delete_ha_rule` | Delete an HA rule | full | destructive |
+| `pve_disarm_ha` | Disarm the HA stack for maintenance (PVE 9.2+) | full | destructive, idempotent |
+| `pve_arm_ha` | Re-arm the HA stack (PVE 9.2+) | full | destructive, idempotent |
+
+> **Note:** HA groups are deprecated in PVE 9 in favor of HA rules. The per-service `group` field was removed from HA status output in PVE 9.1.
 
 </details>
 
@@ -409,6 +423,8 @@ Once configured, ask your AI tool questions in natural language:
 
 - **"Migrate VM 100 to node pve2"** -- calls `pve_migrate_qemu_vm` to live-migrate the VM to another node.
 
+- **"Shut down VMs 103, 104 and 105 in parallel"** -- calls `pve_bulk_shutdown_guests` to shut down multiple guests cluster-wide in a single request.
+
 ## Troubleshooting
 
 ### Connection refused / ECONNREFUSED
@@ -421,7 +437,7 @@ If your PVE instance uses a self-signed certificate, set `PVE_VERIFY_SSL=false`.
 
 ### Tools not showing up
 
-Check your access tier setting. In `read-only` mode, only 51 tools are registered. In `read-execute` mode, 68 tools are registered. Use `full` (or omit `PVE_ACCESS_TIER`) for all 105 tools. Check `PVE_CATEGORIES` -- only tools in listed categories are registered. Also verify the server started without errors by checking stderr output.
+Check your access tier setting. In `read-only` mode, only 53 tools are registered. In `read-execute` mode, 75 tools are registered. Use `full` (or omit `PVE_ACCESS_TIER`) for all 117 tools. Check `PVE_CATEGORIES` -- only tools in listed categories are registered. Also verify the server started without errors by checking stderr output.
 
 ## Development
 

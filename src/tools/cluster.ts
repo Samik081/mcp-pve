@@ -169,6 +169,182 @@ export function registerClusterTools(
     },
   });
 
+  // --- Read-execute tools (datacenter bulk guest actions, PVE 9.1+) ---
+
+  registerTool(server, config, {
+    name: "pve_bulk_start_guests",
+    title: "Bulk Start Guests",
+    description:
+      "Start multiple VMs/containers cluster-wide in one bulk action (PVE 9.1+). Returns a task ID",
+    category: "cluster",
+    accessTier: "read-execute",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
+    inputSchema: {
+      vms: z.array(z.number()).min(1).describe("VMIDs of the guests to start"),
+      timeout: z
+        .number()
+        .optional()
+        .describe("Start timeout in seconds per guest (VMs only)"),
+      max_workers: z
+        .number()
+        .optional()
+        .describe("Maximum concurrent tasks (default: 4)"),
+    },
+    handler: async (args) => {
+      const body: Record<string, unknown> = { vms: args.vms };
+      if (args.timeout !== undefined) body.timeout = args.timeout;
+      if (args.max_workers !== undefined)
+        body["max-workers"] = args.max_workers;
+      const data = await client.post("/cluster/bulk-action/guest/start", body);
+      return `Bulk start initiated for ${(args.vms as number[]).length} guest(s). Task: ${data}`;
+    },
+  });
+
+  registerTool(server, config, {
+    name: "pve_bulk_shutdown_guests",
+    title: "Bulk Shutdown Guests",
+    description:
+      "Gracefully shut down multiple VMs/containers cluster-wide in one bulk action (PVE 9.1+). Returns a task ID",
+    category: "cluster",
+    accessTier: "read-execute",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
+    inputSchema: {
+      vms: z
+        .array(z.number())
+        .min(1)
+        .describe("VMIDs of the guests to shut down"),
+      timeout: z
+        .number()
+        .optional()
+        .describe("Shutdown timeout in seconds per guest (default: 180)"),
+      force_stop: z
+        .boolean()
+        .optional()
+        .describe(
+          "Hard-stop guests that do not shut down in time (default: true)",
+        ),
+      max_workers: z
+        .number()
+        .optional()
+        .describe("Maximum concurrent tasks (default: 4)"),
+    },
+    handler: async (args) => {
+      const body: Record<string, unknown> = { vms: args.vms };
+      if (args.timeout !== undefined) body.timeout = args.timeout;
+      if (args.force_stop !== undefined)
+        body["force-stop"] = args.force_stop ? 1 : 0;
+      if (args.max_workers !== undefined)
+        body["max-workers"] = args.max_workers;
+      const data = await client.post(
+        "/cluster/bulk-action/guest/shutdown",
+        body,
+      );
+      return `Bulk shutdown initiated for ${(args.vms as number[]).length} guest(s). Task: ${data}`;
+    },
+  });
+
+  registerTool(server, config, {
+    name: "pve_bulk_suspend_guests",
+    title: "Bulk Suspend Guests",
+    description:
+      "Suspend multiple VMs cluster-wide in one bulk action (PVE 9.1+). Returns a task ID",
+    category: "cluster",
+    accessTier: "read-execute",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
+    inputSchema: {
+      vms: z
+        .array(z.number())
+        .min(1)
+        .describe("VMIDs of the guests to suspend"),
+      to_disk: z
+        .boolean()
+        .optional()
+        .describe("Suspend to disk; resumed on next start (default: false)"),
+      statestorage: z
+        .string()
+        .optional()
+        .describe("Storage for the VM state (requires to_disk)"),
+      max_workers: z
+        .number()
+        .optional()
+        .describe("Maximum concurrent tasks (default: 4)"),
+    },
+    handler: async (args) => {
+      const body: Record<string, unknown> = { vms: args.vms };
+      if (args.to_disk !== undefined) body["to-disk"] = args.to_disk ? 1 : 0;
+      if (args.statestorage !== undefined)
+        body.statestorage = args.statestorage;
+      if (args.max_workers !== undefined)
+        body["max-workers"] = args.max_workers;
+      const data = await client.post(
+        "/cluster/bulk-action/guest/suspend",
+        body,
+      );
+      return `Bulk suspend initiated for ${(args.vms as number[]).length} guest(s). Task: ${data}`;
+    },
+  });
+
+  registerTool(server, config, {
+    name: "pve_bulk_migrate_guests",
+    title: "Bulk Migrate Guests",
+    description:
+      "Migrate multiple VMs/containers to a target node in one bulk action (PVE 9.1+). Returns a task ID",
+    category: "cluster",
+    accessTier: "read-execute",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
+    inputSchema: {
+      vms: z
+        .array(z.number())
+        .min(1)
+        .describe("VMIDs of the guests to migrate"),
+      target: z.string().describe("Target node name"),
+      online: z
+        .boolean()
+        .optional()
+        .describe("Live migration for VMs, restart migration for containers"),
+      with_local_disks: z
+        .boolean()
+        .optional()
+        .describe("Enable live storage migration for local disks"),
+      max_workers: z
+        .number()
+        .optional()
+        .describe("Maximum concurrent tasks (default: 1)"),
+    },
+    handler: async (args) => {
+      const body: Record<string, unknown> = {
+        vms: args.vms,
+        target: args.target,
+      };
+      if (args.online !== undefined) body.online = args.online ? 1 : 0;
+      if (args.with_local_disks !== undefined)
+        body["with-local-disks"] = args.with_local_disks ? 1 : 0;
+      if (args.max_workers !== undefined)
+        body["max-workers"] = args.max_workers;
+      const data = await client.post(
+        "/cluster/bulk-action/guest/migrate",
+        body,
+      );
+      return `Bulk migration to '${args.target}' initiated for ${(args.vms as number[]).length} guest(s). Task: ${data}`;
+    },
+  });
+
   // --- Full access tools ---
 
   registerTool(server, config, {
@@ -197,6 +373,12 @@ export function registerClusterTools(
         .boolean()
         .optional()
         .describe("Allow insecure migration"),
+      crs: z
+        .string()
+        .optional()
+        .describe(
+          "Cluster resource scheduling options as a property string. Sub-keys: ha=basic|static|dynamic (dynamic enables the PVE 9.2 load balancer), ha-auto-rebalance=0|1, ha-auto-rebalance-threshold=<0-100>, ha-auto-rebalance-margin=<0-100>, ha-auto-rebalance-hold-duration=<n>, ha-auto-rebalance-method=bruteforce|topsis, ha-rebalance-on-start=0|1. Example: 'ha=dynamic,ha-auto-rebalance=1'",
+        ),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = {};
@@ -206,6 +388,7 @@ export function registerClusterTools(
       if (args.http_proxy !== undefined) body.http_proxy = args.http_proxy;
       if (args.migration_unsecure !== undefined)
         body.migration_unsecure = args.migration_unsecure ? 1 : 0;
+      if (args.crs !== undefined) body.crs = args.crs;
       await client.put("/cluster/options", body);
       return "Cluster options updated successfully.";
     },

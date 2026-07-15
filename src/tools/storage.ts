@@ -144,6 +144,44 @@ export function registerStorageTools(
     },
   });
 
+  // --- Read-execute tools ---
+
+  registerTool(server, config, {
+    name: "pve_pull_oci_image",
+    title: "Pull OCI Image",
+    description:
+      "Pull an OCI container image from a registry (e.g. Docker Hub, GHCR) into a storage's template cache for use as an LXC container template (PVE 9.1+). Returns a task ID",
+    category: "storage",
+    accessTier: "read-execute",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
+    inputSchema: {
+      node: z.string().describe("The node name"),
+      storage: z
+        .string()
+        .describe("Target storage ID (must support templates)"),
+      reference: z
+        .string()
+        .describe("OCI image reference (e.g. docker.io/library/alpine:3.20)"),
+      filename: z
+        .string()
+        .optional()
+        .describe("Custom destination file name (will be normalized)"),
+    },
+    handler: async (args) => {
+      const body: Record<string, unknown> = { reference: args.reference };
+      if (args.filename !== undefined) body.filename = args.filename;
+      const data = await client.post(
+        `/nodes/${args.node}/storage/${args.storage}/oci-registry-pull`,
+        body,
+      );
+      return `OCI image pull initiated for '${args.reference}' on storage '${args.storage}'. Task: ${data}`;
+    },
+  });
+
   // --- Full access tools ---
 
   registerTool(server, config, {
