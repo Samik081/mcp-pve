@@ -372,7 +372,7 @@ export function registerHaTools(
     name: "pve_disarm_ha",
     title: "Disarm HA Stack",
     description:
-      "Disarm the HA stack cluster-wide for maintenance (releases node watchdogs, PVE 9.2+). resource_mode 'freeze': queue state changes until re-armed; 'ignore': HA ignores resources entirely. Requires Sys.Console privilege",
+      "Disarm the HA stack cluster-wide for maintenance (releases node watchdogs, PVE 9.2+). resource_mode 'freeze': queue state changes until re-armed; 'ignore': HA ignores resources entirely. Requires Sys.Console privilege — a privilege-separated API token must have Sys.Console granted",
     category: "ha",
     accessTier: "full",
     annotations: {
@@ -397,7 +397,7 @@ export function registerHaTools(
     name: "pve_arm_ha",
     title: "Arm HA Stack",
     description:
-      "Re-arm the HA stack cluster-wide after maintenance (PVE 9.2+). Requires Sys.Console privilege",
+      "Re-arm the HA stack cluster-wide after maintenance (PVE 9.2+). Requires Sys.Console privilege — a privilege-separated API token must have Sys.Console granted",
     category: "ha",
     accessTier: "full",
     annotations: {

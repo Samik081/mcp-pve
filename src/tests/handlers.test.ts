@@ -261,6 +261,21 @@ describe("handler: HA rule write tools", () => {
     );
   });
 
+  it("pve_update_ha_rule remaps delete_settings to the delete body field", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_update_ha_rule",
+      arguments: { rule: "keep-apart", delete_settings: "comment" },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.put).toHaveBeenCalledWith(
+      "/cluster/ha/rules/keep-apart",
+      {
+        delete: "comment",
+      },
+    );
+  });
+
   it("pve_delete_ha_rule deletes the rule path", async () => {
     const result = await mcpClient.callTool({
       name: "pve_delete_ha_rule",
