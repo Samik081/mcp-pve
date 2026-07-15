@@ -5,12 +5,12 @@ import { registerAllTools } from "../tools/index.js";
 import { connectTestClient, makeConfig, makeMockClient } from "./helpers.js";
 
 describe("tool registration", () => {
-  it("registers 116 tools at full tier", async () => {
+  it("registers 117 tools at full tier", async () => {
     const server = createServer();
     registerAllTools(server, makeMockClient(), makeConfig());
     const { client, cleanup } = await connectTestClient(server);
     const { tools } = await client.listTools();
-    expect(tools).toHaveLength(116);
+    expect(tools).toHaveLength(117);
     await cleanup();
   });
 
@@ -33,7 +33,7 @@ describe("tool registration", () => {
     await cleanup();
   });
 
-  it("registers 74 tools in read-execute mode", async () => {
+  it("registers 75 tools in read-execute mode", async () => {
     const server = createServer();
     registerAllTools(
       server,
@@ -42,7 +42,7 @@ describe("tool registration", () => {
     );
     const { client, cleanup } = await connectTestClient(server);
     const { tools } = await client.listTools();
-    expect(tools).toHaveLength(74);
+    expect(tools).toHaveLength(75);
     await cleanup();
   });
 

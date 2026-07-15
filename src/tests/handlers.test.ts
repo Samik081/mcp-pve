@@ -403,3 +403,60 @@ describe("handler: bulk guest actions", () => {
     );
   });
 });
+
+describe("handler: pve_pull_oci_image", () => {
+  let cleanup: () => Promise<void>;
+  let mcpClient: Client;
+  let mockClient: PveClient;
+
+  beforeEach(async () => {
+    mockClient = makeMockClient();
+    const server = createServer();
+    registerAllTools(server, mockClient, makeConfig());
+    const conn = await connectTestClient(server);
+    mcpClient = conn.client;
+    cleanup = conn.cleanup;
+  });
+
+  afterEach(async () => {
+    await cleanup();
+  });
+
+  it("posts the reference to the oci-registry-pull endpoint", async () => {
+    vi.mocked(mockClient.post).mockResolvedValueOnce("UPID:pve:0001");
+
+    const result = await mcpClient.callTool({
+      name: "pve_pull_oci_image",
+      arguments: {
+        node: "pve",
+        storage: "local",
+        reference: "docker.io/library/alpine:3.20",
+      },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.post).toHaveBeenCalledWith(
+      "/nodes/pve/storage/local/oci-registry-pull",
+      { reference: "docker.io/library/alpine:3.20" },
+    );
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+    expect(text).toContain("UPID:pve:0001");
+  });
+
+  it("includes filename when provided", async () => {
+    await mcpClient.callTool({
+      name: "pve_pull_oci_image",
+      arguments: {
+        node: "pve",
+        storage: "local",
+        reference: "ghcr.io/acme/app:v1",
+        filename: "acme-app-v1",
+      },
+    });
+
+    expect(mockClient.post).toHaveBeenCalledWith(
+      "/nodes/pve/storage/local/oci-registry-pull",
+      { reference: "ghcr.io/acme/app:v1", filename: "acme-app-v1" },
+    );
+  });
+});
