@@ -522,7 +522,7 @@ describe("handler: PVE 9.1/9.2 parameter additions", () => {
       vmid: 200,
       ostemplate: "local:vztmpl/alpine-3.20.tar",
       entrypoint: "/usr/bin/redis-server",
-      env: "FOO=bar BAZ=qux",
+      env: "FOO=bar\u0000BAZ=qux",
     });
   });
 });

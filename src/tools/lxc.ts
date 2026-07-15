@@ -277,7 +277,8 @@ export function registerLxcTools(
         body["ssh-public-keys"] = args.ssh_public_keys;
       if (args.storage !== undefined) body.storage = args.storage;
       if (args.entrypoint !== undefined) body.entrypoint = args.entrypoint;
-      if (args.env !== undefined) body.env = (args.env as string[]).join(" ");
+      if (args.env !== undefined)
+        body.env = (args.env as string[]).join("\u0000");
       const data = await client.post(`/nodes/${args.node}/lxc`, body);
       return `Container ${args.vmid} creation initiated on node ${args.node}. Task: ${data}`;
     },
