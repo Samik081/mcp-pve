@@ -273,3 +273,45 @@ describe("handler: HA rule write tools", () => {
     );
   });
 });
+
+describe("handler: HA arm/disarm", () => {
+  let cleanup: () => Promise<void>;
+  let mcpClient: Client;
+  let mockClient: PveClient;
+
+  beforeEach(async () => {
+    mockClient = makeMockClient();
+    const server = createServer();
+    registerAllTools(server, mockClient, makeConfig());
+    const conn = await connectTestClient(server);
+    mcpClient = conn.client;
+    cleanup = conn.cleanup;
+  });
+
+  afterEach(async () => {
+    await cleanup();
+  });
+
+  it("pve_disarm_ha posts resource-mode", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_disarm_ha",
+      arguments: { resource_mode: "freeze" },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.post).toHaveBeenCalledWith(
+      "/cluster/ha/status/disarm-ha",
+      { "resource-mode": "freeze" },
+    );
+  });
+
+  it("pve_arm_ha posts with no body", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_arm_ha",
+      arguments: {},
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.post).toHaveBeenCalledWith("/cluster/ha/status/arm-ha");
+  });
+});

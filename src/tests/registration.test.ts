@@ -5,12 +5,12 @@ import { registerAllTools } from "../tools/index.js";
 import { connectTestClient, makeConfig, makeMockClient } from "./helpers.js";
 
 describe("tool registration", () => {
-  it("registers 110 tools at full tier", async () => {
+  it("registers 112 tools at full tier", async () => {
     const server = createServer();
     registerAllTools(server, makeMockClient(), makeConfig());
     const { client, cleanup } = await connectTestClient(server);
     const { tools } = await client.listTools();
-    expect(tools).toHaveLength(110);
+    expect(tools).toHaveLength(112);
     await cleanup();
   });
 

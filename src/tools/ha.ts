@@ -367,4 +367,47 @@ export function registerHaTools(
       return `HA rule '${args.rule}' deleted.`;
     },
   });
+
+  registerTool(server, config, {
+    name: "pve_disarm_ha",
+    title: "Disarm HA Stack",
+    description:
+      "Disarm the HA stack cluster-wide for maintenance (releases node watchdogs, PVE 9.2+). resource_mode 'freeze': queue state changes until re-armed; 'ignore': HA ignores resources entirely. Requires Sys.Console privilege",
+    category: "ha",
+    accessTier: "full",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
+    inputSchema: {
+      resource_mode: z
+        .enum(["freeze", "ignore"])
+        .describe("How HA-managed resources are handled while disarmed"),
+    },
+    handler: async (args) => {
+      await client.post("/cluster/ha/status/disarm-ha", {
+        "resource-mode": args.resource_mode,
+      });
+      return `HA stack disarmed (resource mode: ${args.resource_mode}).`;
+    },
+  });
+
+  registerTool(server, config, {
+    name: "pve_arm_ha",
+    title: "Arm HA Stack",
+    description:
+      "Re-arm the HA stack cluster-wide after maintenance (PVE 9.2+). Requires Sys.Console privilege",
+    category: "ha",
+    accessTier: "full",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
+    handler: async () => {
+      await client.post("/cluster/ha/status/arm-ha");
+      return "HA stack armed.";
+    },
+  });
 }
