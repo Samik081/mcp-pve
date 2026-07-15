@@ -209,3 +209,67 @@ describe("handler: pve_get_ha_rule", () => {
     expect(JSON.parse(text)).toEqual(fakeRule);
   });
 });
+
+describe("handler: HA rule write tools", () => {
+  let cleanup: () => Promise<void>;
+  let mcpClient: Client;
+  let mockClient: PveClient;
+
+  beforeEach(async () => {
+    mockClient = makeMockClient();
+    const server = createServer();
+    registerAllTools(server, mockClient, makeConfig());
+    const conn = await connectTestClient(server);
+    mcpClient = conn.client;
+    cleanup = conn.cleanup;
+  });
+
+  afterEach(async () => {
+    await cleanup();
+  });
+
+  it("pve_create_ha_rule posts required and optional fields", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_create_ha_rule",
+      arguments: {
+        rule: "keep-apart",
+        type: "resource-affinity",
+        resources: "vm:100,vm:101",
+        affinity: "negative",
+      },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.post).toHaveBeenCalledWith("/cluster/ha/rules", {
+      rule: "keep-apart",
+      type: "resource-affinity",
+      resources: "vm:100,vm:101",
+      affinity: "negative",
+    });
+  });
+
+  it("pve_update_ha_rule puts to the rule path and converts booleans", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_update_ha_rule",
+      arguments: { rule: "keep-apart", disable: true, comment: "paused" },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.put).toHaveBeenCalledWith(
+      "/cluster/ha/rules/keep-apart",
+      { disable: 1, comment: "paused" },
+    );
+  });
+
+  it("pve_delete_ha_rule deletes the rule path", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_delete_ha_rule",
+      arguments: { rule: "keep-apart" },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.delete).toHaveBeenCalledWith(
+      "/cluster/ha/rules/keep-apart",
+    );
+  });
+});
