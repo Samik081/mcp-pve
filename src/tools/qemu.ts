@@ -353,6 +353,12 @@ export function registerQemuTools(
       memory: z.number().optional().describe("Memory in MB"),
       cores: z.number().optional().describe("Number of CPU cores"),
       sockets: z.number().optional().describe("Number of CPU sockets"),
+      cpu: z
+        .string()
+        .optional()
+        .describe(
+          "CPU type with optional flags (e.g. 'host,flags=+nested-virt' for nested virtualization on PVE 9.1+, or a custom CPU model name)",
+        ),
       description: z.string().optional().describe("VM description"),
       onboot: z.boolean().optional().describe("Start on boot"),
       net0: z.string().optional().describe("Network device config"),
@@ -364,6 +370,7 @@ export function registerQemuTools(
       if (args.memory !== undefined) body.memory = args.memory;
       if (args.cores !== undefined) body.cores = args.cores;
       if (args.sockets !== undefined) body.sockets = args.sockets;
+      if (args.cpu !== undefined) body.cpu = args.cpu;
       if (args.description !== undefined) body.description = args.description;
       if (args.onboot !== undefined) body.onboot = args.onboot ? 1 : 0;
       if (args.net0 !== undefined) body.net0 = args.net0;

@@ -122,7 +122,7 @@ export function registerHaTools(
     name: "pve_create_ha_resource",
     title: "Create HA Resource",
     description:
-      "Add a VM or container to HA management. SID format: type:vmid (e.g. vm:100)",
+      "Add a VM or container to HA management. SID format: type:vmid (e.g. vm:100). Requires Sys.Console privilege on PVE 9.2+",
     category: "ha",
     accessTier: "full",
     annotations: {

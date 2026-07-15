@@ -460,3 +460,69 @@ describe("handler: pve_pull_oci_image", () => {
     );
   });
 });
+
+describe("handler: PVE 9.1/9.2 parameter additions", () => {
+  let cleanup: () => Promise<void>;
+  let mcpClient: Client;
+  let mockClient: PveClient;
+
+  beforeEach(async () => {
+    mockClient = makeMockClient();
+    const server = createServer();
+    registerAllTools(server, mockClient, makeConfig());
+    const conn = await connectTestClient(server);
+    mcpClient = conn.client;
+    cleanup = conn.cleanup;
+  });
+
+  afterEach(async () => {
+    await cleanup();
+  });
+
+  it("pve_update_cluster_options passes crs through", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_update_cluster_options",
+      arguments: { crs: "ha=dynamic,ha-auto-rebalance=1" },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.put).toHaveBeenCalledWith("/cluster/options", {
+      crs: "ha=dynamic,ha-auto-rebalance=1",
+    });
+  });
+
+  it("pve_update_qemu_config passes cpu through", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_update_qemu_config",
+      arguments: { node: "pve", vmid: 100, cpu: "host,flags=+nested-virt" },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.put).toHaveBeenCalledWith("/nodes/pve/qemu/100/config", {
+      cpu: "host,flags=+nested-virt",
+    });
+  });
+
+  it("pve_create_lxc_container passes entrypoint and NUL-joins env", async () => {
+    vi.mocked(mockClient.post).mockResolvedValueOnce("UPID:pve:0002");
+
+    const result = await mcpClient.callTool({
+      name: "pve_create_lxc_container",
+      arguments: {
+        node: "pve",
+        vmid: 200,
+        ostemplate: "local:vztmpl/alpine-3.20.tar",
+        entrypoint: "/usr/bin/redis-server",
+        env: ["FOO=bar", "BAZ=qux"],
+      },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.post).toHaveBeenCalledWith("/nodes/pve/lxc", {
+      vmid: 200,
+      ostemplate: "local:vztmpl/alpine-3.20.tar",
+      entrypoint: "/usr/bin/redis-server",
+      env: "FOO=bar BAZ=qux",
+    });
+  });
+});

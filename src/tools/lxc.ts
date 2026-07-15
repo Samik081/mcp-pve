@@ -245,6 +245,18 @@ export function registerLxcTools(
         .optional()
         .describe("SSH public keys to add to the container"),
       storage: z.string().optional().describe("Target storage for rootfs"),
+      entrypoint: z
+        .string()
+        .optional()
+        .describe(
+          "Command to run as init, for OCI application containers (PVE 9.1+). Absolute/relative path or a binary in $PATH",
+        ),
+      env: z
+        .array(z.string())
+        .optional()
+        .describe(
+          "Container runtime environment variables as KEY=VALUE entries, for OCI application containers (PVE 9.1+)",
+        ),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = {
@@ -264,6 +276,8 @@ export function registerLxcTools(
       if (args.ssh_public_keys !== undefined)
         body["ssh-public-keys"] = args.ssh_public_keys;
       if (args.storage !== undefined) body.storage = args.storage;
+      if (args.entrypoint !== undefined) body.entrypoint = args.entrypoint;
+      if (args.env !== undefined) body.env = (args.env as string[]).join(" ");
       const data = await client.post(`/nodes/${args.node}/lxc`, body);
       return `Container ${args.vmid} creation initiated on node ${args.node}. Task: ${data}`;
     },

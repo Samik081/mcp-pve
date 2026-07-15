@@ -373,6 +373,12 @@ export function registerClusterTools(
         .boolean()
         .optional()
         .describe("Allow insecure migration"),
+      crs: z
+        .string()
+        .optional()
+        .describe(
+          "Cluster resource scheduling options as a property string. Sub-keys: ha=basic|static|dynamic (dynamic enables the PVE 9.2 load balancer), ha-auto-rebalance=0|1, ha-auto-rebalance-threshold=<0-100>, ha-auto-rebalance-margin=<0-100>, ha-auto-rebalance-hold-duration=<n>, ha-auto-rebalance-method=bruteforce|topsis, ha-rebalance-on-start=0|1. Example: 'ha=dynamic,ha-auto-rebalance=1'",
+        ),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = {};
@@ -382,6 +388,7 @@ export function registerClusterTools(
       if (args.http_proxy !== undefined) body.http_proxy = args.http_proxy;
       if (args.migration_unsecure !== undefined)
         body.migration_unsecure = args.migration_unsecure ? 1 : 0;
+      if (args.crs !== undefined) body.crs = args.crs;
       await client.put("/cluster/options", body);
       return "Cluster options updated successfully.";
     },
