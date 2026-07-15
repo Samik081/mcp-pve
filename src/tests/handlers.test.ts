@@ -128,3 +128,84 @@ describe("handler: pve_manage_node_service (read-execute)", () => {
     await cleanup();
   });
 });
+
+describe("handler: pve_list_ha_rules", () => {
+  let cleanup: () => Promise<void>;
+  let mcpClient: Client;
+  let mockClient: PveClient;
+
+  beforeEach(async () => {
+    mockClient = makeMockClient();
+    const server = createServer();
+    registerAllTools(server, mockClient, makeConfig());
+    const conn = await connectTestClient(server);
+    mcpClient = conn.client;
+    cleanup = conn.cleanup;
+  });
+
+  afterEach(async () => {
+    await cleanup();
+  });
+
+  it("calls client.get with /cluster/ha/rules and no query by default", async () => {
+    const fakeRules = [{ rule: "keep-apart", type: "resource-affinity" }];
+    vi.mocked(mockClient.get).mockResolvedValueOnce(fakeRules);
+
+    const result = await mcpClient.callTool({
+      name: "pve_list_ha_rules",
+      arguments: {},
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.get).toHaveBeenCalledWith("/cluster/ha/rules");
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+    expect(JSON.parse(text)).toEqual(fakeRules);
+  });
+
+  it("passes type and resource filters as query params", async () => {
+    vi.mocked(mockClient.get).mockResolvedValueOnce([]);
+
+    await mcpClient.callTool({
+      name: "pve_list_ha_rules",
+      arguments: { type: "node-affinity", resource: "vm:100" },
+    });
+
+    expect(mockClient.get).toHaveBeenCalledWith(
+      "/cluster/ha/rules?type=node-affinity&resource=vm%3A100",
+    );
+  });
+});
+
+describe("handler: pve_get_ha_rule", () => {
+  let cleanup: () => Promise<void>;
+  let mcpClient: Client;
+  let mockClient: PveClient;
+
+  beforeEach(async () => {
+    mockClient = makeMockClient();
+    const server = createServer();
+    registerAllTools(server, mockClient, makeConfig());
+    const conn = await connectTestClient(server);
+    mcpClient = conn.client;
+    cleanup = conn.cleanup;
+  });
+
+  afterEach(async () => {
+    await cleanup();
+  });
+
+  it("calls client.get with the rule id in the path", async () => {
+    const fakeRule = { rule: "keep-apart", type: "resource-affinity" };
+    vi.mocked(mockClient.get).mockResolvedValueOnce(fakeRule);
+
+    const result = await mcpClient.callTool({
+      name: "pve_get_ha_rule",
+      arguments: { rule: "keep-apart" },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.get).toHaveBeenCalledWith("/cluster/ha/rules/keep-apart");
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+    expect(JSON.parse(text)).toEqual(fakeRule);
+  });
+});

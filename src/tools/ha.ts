@@ -62,6 +62,60 @@ export function registerHaTools(
     },
   });
 
+  registerTool(server, config, {
+    name: "pve_list_ha_rules",
+    title: "List HA Rules",
+    description:
+      "List HA rules (node-affinity and resource-affinity). HA rules replace the deprecated HA groups (PVE 9+)",
+    category: "ha",
+    accessTier: "read-only",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
+    inputSchema: {
+      type: z
+        .enum(["node-affinity", "resource-affinity"])
+        .optional()
+        .describe("Filter by rule type"),
+      resource: z
+        .string()
+        .optional()
+        .describe("Only rules affecting this resource (e.g. vm:100)"),
+    },
+    handler: async (args) => {
+      const params = new URLSearchParams();
+      if (args.type) params.set("type", String(args.type));
+      if (args.resource) params.set("resource", String(args.resource));
+      const qs = params.toString();
+      const data = await client.get(`/cluster/ha/rules${qs ? `?${qs}` : ""}`);
+      return JSON.stringify(data, null, 2);
+    },
+  });
+
+  registerTool(server, config, {
+    name: "pve_get_ha_rule",
+    title: "Get HA Rule",
+    description: "Get the configuration of a specific HA rule",
+    category: "ha",
+    accessTier: "read-only",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
+    inputSchema: {
+      rule: z.string().describe("The HA rule identifier"),
+    },
+    handler: async (args) => {
+      const data = await client.get(
+        `/cluster/ha/rules/${encodeURIComponent(String(args.rule))}`,
+      );
+      return JSON.stringify(data, null, 2);
+    },
+  });
+
   // --- Full access tools ---
 
   registerTool(server, config, {
