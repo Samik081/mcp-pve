@@ -315,3 +315,91 @@ describe("handler: HA arm/disarm", () => {
     expect(mockClient.post).toHaveBeenCalledWith("/cluster/ha/status/arm-ha");
   });
 });
+
+describe("handler: bulk guest actions", () => {
+  let cleanup: () => Promise<void>;
+  let mcpClient: Client;
+  let mockClient: PveClient;
+
+  beforeEach(async () => {
+    mockClient = makeMockClient();
+    const server = createServer();
+    registerAllTools(server, mockClient, makeConfig());
+    const conn = await connectTestClient(server);
+    mcpClient = conn.client;
+    cleanup = conn.cleanup;
+  });
+
+  afterEach(async () => {
+    await cleanup();
+  });
+
+  it("pve_bulk_start_guests posts vms array and mapped max-workers", async () => {
+    vi.mocked(mockClient.post).mockResolvedValueOnce("UPID:pve:0000");
+
+    const result = await mcpClient.callTool({
+      name: "pve_bulk_start_guests",
+      arguments: { vms: [100, 101], max_workers: 2 },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.post).toHaveBeenCalledWith(
+      "/cluster/bulk-action/guest/start",
+      { vms: [100, 101], "max-workers": 2 },
+    );
+  });
+
+  it("pve_bulk_start_guests rejects an empty vms array", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_bulk_start_guests",
+      arguments: { vms: [] },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(mockClient.post).not.toHaveBeenCalled();
+  });
+
+  it("pve_bulk_shutdown_guests maps force_stop and timeout", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_bulk_shutdown_guests",
+      arguments: { vms: [100], timeout: 60, force_stop: false },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.post).toHaveBeenCalledWith(
+      "/cluster/bulk-action/guest/shutdown",
+      { vms: [100], timeout: 60, "force-stop": 0 },
+    );
+  });
+
+  it("pve_bulk_suspend_guests maps to-disk and statestorage", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_bulk_suspend_guests",
+      arguments: { vms: [100], to_disk: true, statestorage: "local-lvm" },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.post).toHaveBeenCalledWith(
+      "/cluster/bulk-action/guest/suspend",
+      { vms: [100], "to-disk": 1, statestorage: "local-lvm" },
+    );
+  });
+
+  it("pve_bulk_migrate_guests requires target and maps online/with-local-disks", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_bulk_migrate_guests",
+      arguments: {
+        vms: [100, 200],
+        target: "pve2",
+        online: true,
+        with_local_disks: true,
+      },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.post).toHaveBeenCalledWith(
+      "/cluster/bulk-action/guest/migrate",
+      { vms: [100, 200], target: "pve2", online: 1, "with-local-disks": 1 },
+    );
+  });
+});
