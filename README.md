@@ -12,7 +12,7 @@ MCP server for [Proxmox VE](https://www.proxmox.com/en/proxmox-virtual-environme
 - **117 tools** across **12 categories** covering the Proxmox VE REST API
 - **Three access tiers** (`read-only`, `read-execute`, `full`) for granular control
 - **Category filtering** via `PVE_CATEGORIES` to expose only the tools you need
-- **Zero HTTP dependencies** -- uses native `fetch` (Node 18+)
+- **Zero HTTP dependencies** -- uses native `fetch` (Node 22+)
 - **Self-signed cert support** via `PVE_VERIFY_SSL=false`
 - **Docker images** for `linux/amd64` and `linux/arm64` on [GHCR](https://ghcr.io/samik081/mcp-pve)
 - **Remote MCP** via HTTP transport (`MCP_TRANSPORT=http`) using the Streamable HTTP protocol
