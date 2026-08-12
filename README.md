@@ -9,7 +9,7 @@ MCP server for [Proxmox VE](https://www.proxmox.com/en/proxmox-virtual-environme
 
 ## Features
 
-- **117 tools** across **12 categories** covering the Proxmox VE REST API
+- **121 tools** across **12 categories** covering the Proxmox VE REST API
 - **Three access tiers** (`read-only`, `read-execute`, `full`) for granular control
 - **Category filtering** via `PVE_CATEGORIES` to expose only the tools you need
 - **Zero HTTP dependencies** -- uses native `fetch` (Node 22+)
@@ -144,15 +144,15 @@ Control which tools are available using the `PVE_ACCESS_TIER` environment variab
 
 | Tier | Tools | Description |
 |------|-------|-------------|
-| `full` (default) | 117 | Read, execute, and write -- full control |
-| `read-execute` | 75 | Read and execute -- no resource creation/deletion |
-| `read-only` | 53 | Read only -- safe for exploration, no state changes |
+| `full` (default) | 121 | Read, execute, and write -- full control |
+| `read-execute` | 76 | Read and execute -- no resource creation/deletion |
+| `read-only` | 54 | Read only -- safe for exploration, no state changes |
 
 **Tier details:**
 
-- **full**: All 117 tools. Includes creating/deleting VMs, containers, storage, users, firewall rules, and more.
-- **read-execute**: 75 tools. All read tools plus power actions (start, stop, migrate), bulk guest actions, OCI image pull, backup execution, and task management.
-- **read-only**: 53 tools. List, get, status, and log tools only. No state changes.
+- **full**: All 121 tools. Includes creating/deleting VMs, containers, storage, users, firewall rules, and more.
+- **read-execute**: 76 tools. All read tools plus power actions (start, stop, migrate), bulk guest actions, OCI image pull, backup execution, and task management.
+- **read-only**: 54 tools. List, get, status, and log tools only. No state changes.
 
 Tools that are not available in your tier are not registered with the MCP server. They will not appear in your AI tool's tool list, keeping the context clean.
 
@@ -182,7 +182,7 @@ Create API tokens in the PVE UI under **Datacenter > Permissions > API Tokens**.
 
 ## Tools
 
-mcp-pve provides 117 tools organized by category. Each tool's Access column shows the minimum tier required: `read-only` (available in all tiers), `read-execute` (requires `read-execute` or `full`), or `full` (requires `full` tier only). The Hints column shows tool behavior: `read-only` (no state changes), `destructive` (modifies existing state), `idempotent` (same result if called twice).
+mcp-pve provides 121 tools organized by category. Each tool's Access column shows the minimum tier required: `read-only` (available in all tiers), `read-execute` (requires `read-execute` or `full`), or `full` (requires `full` tier only). The Hints column shows tool behavior: `read-only` (no state changes), `destructive` (modifies existing state), `idempotent` (same result if called twice).
 
 <details>
 <summary>Nodes (8 tools)</summary>
@@ -293,7 +293,7 @@ mcp-pve provides 117 tools organized by category. Each tool's Access column show
 </details>
 
 <details>
-<summary>Access Control (10 tools)</summary>
+<summary>Access Control (14 tools)</summary>
 
 | Tool | Description | Access | Hints |
 |------|-------------|--------|-------|
@@ -303,10 +303,14 @@ mcp-pve provides 117 tools organized by category. Each tool's Access column show
 | `pve_list_groups` | List all user groups | read-only | read-only, idempotent |
 | `pve_list_acls` | List all ACL entries | read-only | read-only, idempotent |
 | `pve_list_domains` | List authentication domains/realms | read-only | read-only, idempotent |
+| `pve_list_user_tokens` | List the API tokens of a user | read-only | read-only, idempotent |
 | `pve_create_user` | Create a new user | full | — |
 | `pve_update_user` | Update user properties | full | destructive, idempotent |
 | `pve_delete_user` | Delete a user | full | destructive |
 | `pve_update_acl` | Grant or revoke ACL permissions | full | destructive, idempotent |
+| `pve_create_user_token` | Create an API token (secret shown once) | full | — |
+| `pve_update_user_token` | Update an API token's comment, expiration, or privsep | full | destructive, idempotent |
+| `pve_delete_user_token` | Delete an API token from a user | full | destructive |
 
 </details>
 
@@ -437,7 +441,7 @@ If your PVE instance uses a self-signed certificate, set `PVE_VERIFY_SSL=false`.
 
 ### Tools not showing up
 
-Check your access tier setting. In `read-only` mode, only 53 tools are registered. In `read-execute` mode, 75 tools are registered. Use `full` (or omit `PVE_ACCESS_TIER`) for all 117 tools. Check `PVE_CATEGORIES` -- only tools in listed categories are registered. Also verify the server started without errors by checking stderr output.
+Check your access tier setting. In `read-only` mode, only 54 tools are registered. In `read-execute` mode, 76 tools are registered. Use `full` (or omit `PVE_ACCESS_TIER`) for all 121 tools. Check `PVE_CATEGORIES` -- only tools in listed categories are registered. Also verify the server started without errors by checking stderr output.
 
 ## Development
 

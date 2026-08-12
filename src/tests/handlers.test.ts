@@ -541,3 +541,162 @@ describe("handler: PVE 9.1/9.2 parameter additions", () => {
     });
   });
 });
+
+describe("handler: LXC create/update new parameters", () => {
+  let cleanup: () => Promise<void>;
+  let mcpClient: Client;
+  let mockClient: PveClient;
+
+  beforeEach(async () => {
+    mockClient = makeMockClient();
+    const server = createServer();
+    registerAllTools(server, mockClient, makeConfig());
+    const conn = await connectTestClient(server);
+    mcpClient = conn.client;
+    cleanup = conn.cleanup;
+  });
+
+  afterEach(async () => {
+    await cleanup();
+  });
+
+  it("pve_create_lxc_container passes features, onboot, tags, and startup", async () => {
+    vi.mocked(mockClient.post).mockResolvedValueOnce("UPID:pve:0001");
+
+    const result = await mcpClient.callTool({
+      name: "pve_create_lxc_container",
+      arguments: {
+        node: "pve1",
+        vmid: 200,
+        ostemplate: "local:vztmpl/debian-13-standard_13.0-1_amd64.tar.zst",
+        features: "nesting=1,fuse=1",
+        onboot: true,
+        tags: "prod;web",
+        startup: "order=3,up=30",
+      },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.post).toHaveBeenCalledWith("/nodes/pve1/lxc", {
+      vmid: 200,
+      ostemplate: "local:vztmpl/debian-13-standard_13.0-1_amd64.tar.zst",
+      features: "nesting=1,fuse=1",
+      onboot: 1,
+      tags: "prod;web",
+      startup: "order=3,up=30",
+    });
+  });
+
+  it("pve_update_lxc_config passes features, tags, and startup", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_update_lxc_config",
+      arguments: {
+        node: "pve1",
+        vmid: 200,
+        features: "nesting=1",
+        tags: "prod",
+        startup: "order=3",
+      },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.put).toHaveBeenCalledWith("/nodes/pve1/lxc/200/config", {
+      features: "nesting=1",
+      tags: "prod",
+      startup: "order=3",
+    });
+  });
+});
+
+describe("handler: API token tools", () => {
+  let cleanup: () => Promise<void>;
+  let mcpClient: Client;
+  let mockClient: PveClient;
+
+  beforeEach(async () => {
+    mockClient = makeMockClient();
+    const server = createServer();
+    registerAllTools(server, mockClient, makeConfig());
+    const conn = await connectTestClient(server);
+    mcpClient = conn.client;
+    cleanup = conn.cleanup;
+  });
+
+  afterEach(async () => {
+    await cleanup();
+  });
+
+  it("pve_list_user_tokens gets the user token list", async () => {
+    vi.mocked(mockClient.get).mockResolvedValueOnce([
+      { tokenid: "automation", privsep: 0 },
+    ]);
+
+    const result = await mcpClient.callTool({
+      name: "pve_list_user_tokens",
+      arguments: { userid: "mcp@pam" },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.get).toHaveBeenCalledWith(
+      "/access/users/mcp%40pam/token",
+    );
+  });
+
+  it("pve_create_user_token posts options and prints the secret once", async () => {
+    vi.mocked(mockClient.post).mockResolvedValueOnce({
+      "full-tokenid": "mcp@pam!automation",
+      info: { privsep: 0 },
+      value: "12345678-aaaa-bbbb-cccc-1234567890ab",
+    });
+
+    const result = await mcpClient.callTool({
+      name: "pve_create_user_token",
+      arguments: {
+        userid: "mcp@pam",
+        tokenid: "automation",
+        privsep: false,
+        comment: "created by MCP",
+      },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.post).toHaveBeenCalledWith(
+      "/access/users/mcp%40pam/token/automation",
+      { privsep: 0, comment: "created by MCP" },
+    );
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+    expect(text).toContain("mcp@pam!automation");
+    expect(text).toContain("12345678-aaaa-bbbb-cccc-1234567890ab");
+    expect(text).toContain("cannot be retrieved again");
+  });
+
+  it("pve_update_user_token puts the changed fields", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_update_user_token",
+      arguments: {
+        userid: "mcp@pam",
+        tokenid: "automation",
+        comment: "rotated",
+        expire: 0,
+      },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.put).toHaveBeenCalledWith(
+      "/access/users/mcp%40pam/token/automation",
+      { comment: "rotated", expire: 0 },
+    );
+  });
+
+  it("pve_delete_user_token deletes the token path", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_delete_user_token",
+      arguments: { userid: "mcp@pam", tokenid: "automation" },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(mockClient.delete).toHaveBeenCalledWith(
+      "/access/users/mcp%40pam/token/automation",
+    );
+  });
+});

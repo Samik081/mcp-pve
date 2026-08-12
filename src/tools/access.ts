@@ -129,6 +129,28 @@ export function registerAccessTools(
     },
   });
 
+  registerTool(server, config, {
+    name: "pve_list_user_tokens",
+    title: "List User API Tokens",
+    description: "List the API tokens of a user",
+    category: "access",
+    accessTier: "read-only",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
+    inputSchema: {
+      userid: z.string().describe("The user ID (e.g. mcp@pam)"),
+    },
+    handler: async (args) => {
+      const data = await client.get(
+        `/access/users/${encodeURIComponent(String(args.userid))}/token`,
+      );
+      return JSON.stringify(data, null, 2);
+    },
+  });
+
   // --- Full access tools ---
 
   registerTool(server, config, {
@@ -279,6 +301,109 @@ export function registerAccessTools(
       if (args.delete !== undefined) body.delete = args.delete ? 1 : 0;
       await client.put("/access/acl", body);
       return `ACL updated successfully for path '${args.path}'.`;
+    },
+  });
+
+  registerTool(server, config, {
+    name: "pve_create_user_token",
+    title: "Create User API Token",
+    description:
+      "Create an API token for a user. The token secret is returned ONCE in the response and cannot be retrieved again",
+    category: "access",
+    accessTier: "full",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    },
+    inputSchema: {
+      userid: z.string().describe("The user ID (e.g. mcp@pam)"),
+      tokenid: z.string().describe("The token name (e.g. automation)"),
+      privsep: z
+        .boolean()
+        .optional()
+        .describe(
+          "Privilege separation: token permissions are a subset of the user's, managed via separate ACLs (default: true)",
+        ),
+      expire: z
+        .number()
+        .optional()
+        .describe("Expiration date (Unix epoch, 0 = never)"),
+      comment: z.string().optional().describe("Token comment"),
+    },
+    handler: async (args) => {
+      const body: Record<string, unknown> = {};
+      if (args.privsep !== undefined) body.privsep = args.privsep ? 1 : 0;
+      if (args.expire !== undefined) body.expire = args.expire;
+      if (args.comment !== undefined) body.comment = args.comment;
+      const data = (await client.post(
+        `/access/users/${encodeURIComponent(String(args.userid))}/token/${encodeURIComponent(String(args.tokenid))}`,
+        body,
+      )) as { "full-tokenid"?: string; value?: string };
+      return [
+        `Token '${data["full-tokenid"] ?? `${args.userid}!${args.tokenid}`}' created.`,
+        `Secret value (store it now — it cannot be retrieved again): ${data.value ?? "(not returned by the API — check the PVE task log)"}`,
+      ].join("\n");
+    },
+  });
+
+  registerTool(server, config, {
+    name: "pve_update_user_token",
+    title: "Update User API Token",
+    description: "Update an API token's comment, expiration, or privsep",
+    category: "access",
+    accessTier: "full",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    },
+    inputSchema: {
+      userid: z.string().describe("The user ID (e.g. mcp@pam)"),
+      tokenid: z.string().describe("The token name"),
+      privsep: z
+        .boolean()
+        .optional()
+        .describe("Privilege separation (see pve_create_user_token)"),
+      expire: z
+        .number()
+        .optional()
+        .describe("Expiration date (Unix epoch, 0 = never)"),
+      comment: z.string().optional().describe("Token comment"),
+    },
+    handler: async (args) => {
+      const body: Record<string, unknown> = {};
+      if (args.privsep !== undefined) body.privsep = args.privsep ? 1 : 0;
+      if (args.expire !== undefined) body.expire = args.expire;
+      if (args.comment !== undefined) body.comment = args.comment;
+      await client.put(
+        `/access/users/${encodeURIComponent(String(args.userid))}/token/${encodeURIComponent(String(args.tokenid))}`,
+        body,
+      );
+      return `Token '${args.userid}!${args.tokenid}' updated.`;
+    },
+  });
+
+  registerTool(server, config, {
+    name: "pve_delete_user_token",
+    title: "Delete User API Token",
+    description: "Delete an API token from a user",
+    category: "access",
+    accessTier: "full",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
+    inputSchema: {
+      userid: z.string().describe("The user ID (e.g. mcp@pam)"),
+      tokenid: z.string().describe("The token name to delete"),
+    },
+    handler: async (args) => {
+      await client.delete(
+        `/access/users/${encodeURIComponent(String(args.userid))}/token/${encodeURIComponent(String(args.tokenid))}`,
+      );
+      return `Token '${args.userid}!${args.tokenid}' deleted.`;
     },
   });
 }
