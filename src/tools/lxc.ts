@@ -257,6 +257,23 @@ export function registerLxcTools(
         .describe(
           "Container runtime environment variables as KEY=VALUE entries, for OCI application containers (PVE 9.1+)",
         ),
+      features: z
+        .string()
+        .optional()
+        .describe(
+          "Container features in PVE format, e.g. 'nesting=1,fuse=1,keyctl=1'. Needed for systemd 257+ guests (Debian 13) which require nesting",
+        ),
+      onboot: z.boolean().optional().describe("Start the container on boot"),
+      tags: z
+        .string()
+        .optional()
+        .describe("Semicolon-separated tags, e.g. 'prod;web'"),
+      startup: z
+        .string()
+        .optional()
+        .describe(
+          "Startup/shutdown order config, e.g. 'order=3,up=30,down=60'",
+        ),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = {
@@ -279,6 +296,10 @@ export function registerLxcTools(
       if (args.entrypoint !== undefined) body.entrypoint = args.entrypoint;
       if (args.env !== undefined)
         body.env = (args.env as string[]).join("\u0000");
+      if (args.features !== undefined) body.features = args.features;
+      if (args.onboot !== undefined) body.onboot = args.onboot ? 1 : 0;
+      if (args.tags !== undefined) body.tags = args.tags;
+      if (args.startup !== undefined) body.startup = args.startup;
       const data = await client.post(`/nodes/${args.node}/lxc`, body);
       return `Container ${args.vmid} creation initiated on node ${args.node}. Task: ${data}`;
     },
@@ -348,6 +369,22 @@ export function registerLxcTools(
       description: z.string().optional().describe("Container description"),
       onboot: z.boolean().optional().describe("Start on boot"),
       net0: z.string().optional().describe("Network device config"),
+      features: z
+        .string()
+        .optional()
+        .describe(
+          "Container features in PVE format, e.g. 'nesting=1,fuse=1,keyctl=1'. Needed for systemd 257+ guests (Debian 13) which require nesting",
+        ),
+      tags: z
+        .string()
+        .optional()
+        .describe("Semicolon-separated tags, e.g. 'prod;web'"),
+      startup: z
+        .string()
+        .optional()
+        .describe(
+          "Startup/shutdown order config, e.g. 'order=3,up=30,down=60'",
+        ),
     },
     handler: async (args) => {
       const body: Record<string, unknown> = {};
@@ -358,6 +395,9 @@ export function registerLxcTools(
       if (args.description !== undefined) body.description = args.description;
       if (args.onboot !== undefined) body.onboot = args.onboot ? 1 : 0;
       if (args.net0 !== undefined) body.net0 = args.net0;
+      if (args.features !== undefined) body.features = args.features;
+      if (args.tags !== undefined) body.tags = args.tags;
+      if (args.startup !== undefined) body.startup = args.startup;
       await client.put(`/nodes/${args.node}/lxc/${args.vmid}/config`, body);
       return `Container ${args.vmid} configuration updated on node ${args.node}.`;
     },
