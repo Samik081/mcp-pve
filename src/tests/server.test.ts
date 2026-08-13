@@ -202,41 +202,43 @@ async function sendHealthCheck(
   });
 }
 
-function getTestPort(): number {
-  return 30000 + Math.floor(Math.random() * 10000);
-}
-
 describe("HTTP session management", () => {
-  const servers: Array<() => void> = [];
+  const servers: Array<() => Promise<void>> = [];
 
-  afterEach(() => {
+  afterEach(async () => {
     for (const cleanup of servers) {
-      cleanup();
+      await cleanup();
     }
     servers.length = 0;
   });
 
-  async function startOnPort(port: number): Promise<void> {
+  // Binds port 0 so the OS assigns a free port (no collisions) and
+  // registers a cleanup that closes the server after each test.
+  async function startTestServer(): Promise<number> {
     const { config, factory } = makeServerFactory();
-    config.httpPort = port;
 
-    const server = factory();
+    const httpServer = await startServer(factory(), config, factory);
+    if (!httpServer) {
+      throw new Error("startServer did not return an http.Server");
+    }
 
-    // Override process.exit to prevent test runner from dying
-    const origExit = process.exit;
-    process.exit = (() => {}) as never;
+    servers.push(
+      () =>
+        new Promise<void>((resolve, reject) => {
+          httpServer.closeAllConnections();
+          httpServer.close((err) => (err ? reject(err) : resolve()));
+        }),
+    );
 
-    await startServer(server, config, factory);
-
-    process.exit = origExit;
-
-    // We can't easily get the http.Server reference to close it,
-    // but the tests are independent and short-lived
+    const address = httpServer.address();
+    if (typeof address !== "object" || address === null) {
+      throw new Error("http.Server is not bound to a TCP port");
+    }
+    return address.port;
   }
 
   it("initialize request creates a session with mcp-session-id", async () => {
-    const port = getTestPort();
-    await startOnPort(port);
+    const port = await startTestServer();
 
     const res = await sendPost(port, initializeRequest());
     expect(res.status).toBe(200);
@@ -247,8 +249,7 @@ describe("HTTP session management", () => {
   });
 
   it("second initialize creates a different session", async () => {
-    const port = getTestPort();
-    await startOnPort(port);
+    const port = await startTestServer();
 
     const res1 = await sendPost(port, initializeRequest(1));
     const res2 = await sendPost(port, initializeRequest(2));
@@ -263,8 +264,7 @@ describe("HTTP session management", () => {
   });
 
   it("POST without session ID and non-initialize method returns 400", async () => {
-    const port = getTestPort();
-    await startOnPort(port);
+    const port = await startTestServer();
 
     const res = await sendPost(port, {
       jsonrpc: "2.0",
@@ -275,8 +275,7 @@ describe("HTTP session management", () => {
   });
 
   it("POST with invalid session ID returns 400", async () => {
-    const port = getTestPort();
-    await startOnPort(port);
+    const port = await startTestServer();
 
     const res = await sendPost(
       port,
@@ -291,24 +290,21 @@ describe("HTTP session management", () => {
   });
 
   it("GET without session ID returns 400", async () => {
-    const port = getTestPort();
-    await startOnPort(port);
+    const port = await startTestServer();
 
     const res = await sendGet(port);
     expect(res.status).toBe(400);
   });
 
   it("DELETE without session ID returns 400", async () => {
-    const port = getTestPort();
-    await startOnPort(port);
+    const port = await startTestServer();
 
     const res = await sendDelete(port);
     expect(res.status).toBe(400);
   });
 
   it("health check works", async () => {
-    const port = getTestPort();
-    await startOnPort(port);
+    const port = await startTestServer();
 
     const res = await sendHealthCheck(port);
     expect(res.status).toBe(200);
@@ -318,8 +314,7 @@ describe("HTTP session management", () => {
   });
 
   it("existing session accepts subsequent requests", async () => {
-    const port = getTestPort();
-    await startOnPort(port);
+    const port = await startTestServer();
 
     // Initialize
     const initRes = await sendPost(port, initializeRequest());
@@ -344,8 +339,7 @@ describe("HTTP session management", () => {
   });
 
   it("DELETE with valid session ID terminates the session", async () => {
-    const port = getTestPort();
-    await startOnPort(port);
+    const port = await startTestServer();
 
     // Initialize
     const initRes = await sendPost(port, initializeRequest());
