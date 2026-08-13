@@ -8,6 +8,7 @@
 import { randomUUID } from "node:crypto";
 import {
   createServer as createHttpServer,
+  type Server as HttpServer,
   type IncomingMessage,
   type ServerResponse,
 } from "node:http";
@@ -28,21 +29,25 @@ export function createServer(): McpServer {
   );
 }
 
+/**
+ * Returns the underlying http.Server for HTTP transport (so callers such as
+ * tests can inspect the bound port and close it), undefined for stdio.
+ */
 export async function startServer(
   server: McpServer,
   config: AppConfig,
   serverFactory?: () => McpServer,
-): Promise<void> {
+): Promise<HttpServer | undefined> {
   if (config.transport === "http") {
     if (!serverFactory) {
       throw new Error("serverFactory is required for HTTP transport");
     }
-    await startHttpServer(config, serverFactory);
-  } else {
-    const transport = new StdioServerTransport();
-    logger.info(`${SERVER_NAME} v${pkg.version} listening on stdio`);
-    await server.connect(transport);
+    return startHttpServer(config, serverFactory);
   }
+  const transport = new StdioServerTransport();
+  logger.info(`${SERVER_NAME} v${pkg.version} listening on stdio`);
+  await server.connect(transport);
+  return undefined;
 }
 
 const MAX_BODY_BYTES = 4 * 1024 * 1024; // 4 MB
@@ -71,7 +76,7 @@ async function parseJsonBody(req: IncomingMessage): Promise<unknown> {
 async function startHttpServer(
   config: AppConfig,
   serverFactory: () => McpServer,
-): Promise<void> {
+): Promise<HttpServer> {
   const { httpHost, httpPort } = config;
 
   const sessions = new Map<string, StreamableHTTPServerTransport>();
@@ -183,8 +188,13 @@ async function startHttpServer(
 
   await new Promise<void>((resolve, reject) => {
     httpServer.listen(httpPort, httpHost, () => {
+      const address = httpServer.address();
+      const boundPort =
+        typeof address === "object" && address !== null
+          ? address.port
+          : httpPort;
       logger.info(
-        `${SERVER_NAME} v${pkg.version} listening on http://${httpHost}:${httpPort}`,
+        `${SERVER_NAME} v${pkg.version} listening on http://${httpHost}:${boundPort}`,
       );
       resolve();
     });
@@ -204,4 +214,6 @@ async function startHttpServer(
 
   process.once("SIGTERM", () => void shutdown("SIGTERM"));
   process.once("SIGINT", () => void shutdown("SIGINT"));
+
+  return httpServer;
 }
