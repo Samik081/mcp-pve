@@ -1,15 +1,17 @@
-import { request as httpRequest } from "node:http";
+import { request as httpRequest, type IncomingMessage } from "node:http";
 import { afterEach, describe, expect, it } from "vitest";
 import { createServer, startServer } from "../core/server.js";
 import { registerAllTools } from "../tools/index.js";
+import type { AppConfig } from "../types/index.js";
 import { makeConfig, makeMockClient } from "./helpers.js";
 
-function makeServerFactory() {
+function makeServerFactory(overrides: Partial<AppConfig> = {}) {
   const client = makeMockClient();
   const config = makeConfig({
     transport: "http",
     httpPort: 0,
     httpHost: "127.0.0.1",
+    ...overrides,
   });
   return {
     config,
@@ -88,6 +90,39 @@ async function sendPost(
     req.end();
   });
 }
+
+/**
+ * Opens the standalone GET SSE stream and keeps it open. Returns the response
+ * so the caller can destroy() it, which is how a client "disconnects".
+ */
+async function openSseStream(
+  port: number,
+  sessionId: string,
+): Promise<IncomingMessage> {
+  return new Promise((resolve, reject) => {
+    const req = httpRequest(
+      {
+        hostname: "127.0.0.1",
+        port,
+        path: "/",
+        method: "GET",
+        headers: {
+          Accept: "text/event-stream",
+          "mcp-session-id": sessionId,
+        },
+      },
+      (res) => {
+        res.on("data", () => {});
+        res.on("error", () => {});
+        resolve(res);
+      },
+    );
+    req.on("error", reject);
+    req.end();
+  });
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function sendGet(
   port: number,
@@ -214,8 +249,10 @@ describe("HTTP session management", () => {
 
   // Binds port 0 so the OS assigns a free port (no collisions) and
   // registers a cleanup that closes the server after each test.
-  async function startTestServer(): Promise<number> {
-    const { config, factory } = makeServerFactory();
+  async function startTestServer(
+    overrides: Partial<AppConfig> = {},
+  ): Promise<number> {
+    const { config, factory } = makeServerFactory(overrides);
 
     const httpServer = await startServer(factory(), config, factory);
     if (!httpServer) {
@@ -274,7 +311,8 @@ describe("HTTP session management", () => {
     expect(res.status).toBe(400);
   });
 
-  it("POST with invalid session ID returns 400", async () => {
+  // Spec: an unknown session ID gets 404 so the client knows to re-initialize.
+  it("POST with unknown session ID returns 404", async () => {
     const port = await startTestServer();
 
     const res = await sendPost(
@@ -286,7 +324,21 @@ describe("HTTP session management", () => {
       },
       "nonexistent-session-id",
     );
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(404);
+  });
+
+  it("GET with unknown session ID returns 404", async () => {
+    const port = await startTestServer();
+
+    const res = await sendGet(port, "nonexistent-session-id");
+    expect(res.status).toBe(404);
+  });
+
+  it("DELETE with unknown session ID returns 404", async () => {
+    const port = await startTestServer();
+
+    const res = await sendDelete(port, "nonexistent-session-id");
+    expect(res.status).toBe(404);
   });
 
   it("GET without session ID returns 400", async () => {
@@ -362,6 +414,117 @@ describe("HTTP session management", () => {
       { jsonrpc: "2.0", id: 2, method: "tools/list" },
       sessionId,
     );
-    expect(afterDelete.status).toBe(400);
+    expect(afterDelete.status).toBe(404);
+  });
+});
+
+// Regression tests for the HTTP-transport memory leak: sessions whose client
+// went away without sending DELETE (proxies, gateway restarts, crashed
+// clients) used to be retained forever, ~3 MB each.
+describe("HTTP idle session reaping", () => {
+  const servers: Array<() => Promise<void>> = [];
+
+  afterEach(async () => {
+    for (const cleanup of servers) {
+      await cleanup();
+    }
+    servers.length = 0;
+  });
+
+  async function startTestServer(
+    overrides: Partial<AppConfig> = {},
+  ): Promise<number> {
+    const { config, factory } = makeServerFactory(overrides);
+    const httpServer = await startServer(factory(), config, factory);
+    if (!httpServer) {
+      throw new Error("startServer did not return an http.Server");
+    }
+    servers.push(
+      () =>
+        new Promise<void>((resolve, reject) => {
+          httpServer.closeAllConnections();
+          httpServer.close((err) => (err ? reject(err) : resolve()));
+        }),
+    );
+    const address = httpServer.address();
+    if (typeof address !== "object" || address === null) {
+      throw new Error("http.Server is not bound to a TCP port");
+    }
+    return address.port;
+  }
+
+  async function initSession(port: number): Promise<string> {
+    const initRes = await sendPost(port, initializeRequest());
+    expect(initRes.status).toBe(200);
+    const sessionId = initRes.headers["mcp-session-id"];
+    expect(sessionId).toBeDefined();
+    await sendPost(
+      port,
+      { jsonrpc: "2.0", method: "notifications/initialized" },
+      sessionId,
+    );
+    return sessionId;
+  }
+
+  const toolsList = (port: number, sessionId: string) =>
+    sendPost(port, { jsonrpc: "2.0", id: 2, method: "tools/list" }, sessionId);
+
+  it("closes a session that has been idle longer than the timeout", async () => {
+    const port = await startTestServer({ sessionIdleTimeoutMs: 200 });
+    const sessionId = await initSession(port);
+
+    await sleep(700);
+
+    const res = await toolsList(port, sessionId);
+    expect(res.status).toBe(404);
+  });
+
+  it("keeps a session alive while it receives requests", async () => {
+    const port = await startTestServer({ sessionIdleTimeoutMs: 300 });
+    const sessionId = await initSession(port);
+
+    // Poll well inside the idle window for longer than the window itself.
+    for (let i = 0; i < 8; i++) {
+      await sleep(100);
+      const res = await toolsList(port, sessionId);
+      expect(res.status).toBe(200);
+    }
+  });
+
+  it("does not close an idle session whose SSE stream is still connected", async () => {
+    const port = await startTestServer({ sessionIdleTimeoutMs: 200 });
+    const sessionId = await initSession(port);
+    const sse = await openSseStream(port, sessionId);
+    expect(sse.statusCode).toBe(200);
+
+    await sleep(700);
+
+    const res = await toolsList(port, sessionId);
+    expect(res.status).toBe(200);
+    sse.destroy();
+  });
+
+  it("closes a session after its SSE stream disconnects and the timeout elapses", async () => {
+    const port = await startTestServer({ sessionIdleTimeoutMs: 200 });
+    const sessionId = await initSession(port);
+    const sse = await openSseStream(port, sessionId);
+    expect(sse.statusCode).toBe(200);
+
+    // Client (or proxy) drops the TCP connection without DELETE.
+    sse.destroy();
+    await sleep(700);
+
+    const res = await toolsList(port, sessionId);
+    expect(res.status).toBe(404);
+  });
+
+  it("never reaps when the idle timeout is 0 (disabled)", async () => {
+    const port = await startTestServer({ sessionIdleTimeoutMs: 0 });
+    const sessionId = await initSession(port);
+
+    await sleep(500);
+
+    const res = await toolsList(port, sessionId);
+    expect(res.status).toBe(200);
   });
 });
