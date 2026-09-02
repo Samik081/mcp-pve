@@ -57,4 +57,6 @@ export interface AppConfig {
   transport: "stdio" | "http";
   httpPort: number;
   httpHost: string;
+  /** Idle time after which an HTTP session is closed. 0 disables reaping. */
+  sessionIdleTimeoutMs: number;
 }
