@@ -8,6 +8,53 @@ import type { PveClient } from "../core/client.js";
 import { registerTool } from "../core/tools.js";
 import type { AppConfig } from "../types/index.js";
 
+interface ContentItem {
+  volid: string;
+  content?: string;
+  subtype?: string;
+  vmid?: number;
+  ctime?: number;
+  size?: number;
+}
+
+/**
+ * Group content items by (vmid, content type), preserving first-seen order,
+ * then sort groups by vmid (items without a vmid, e.g. ISOs, go last).
+ */
+function groupContent(items: ContentItem[]): ContentItem[][] {
+  const groups = new Map<string, ContentItem[]>();
+  for (const item of items) {
+    const key = `${item.vmid ?? ""}|${item.content ?? ""}`;
+    const group = groups.get(key);
+    if (group) group.push(item);
+    else groups.set(key, [item]);
+  }
+  return [...groups.values()].sort(
+    (a, b) => (a[0].vmid ?? Infinity) - (b[0].vmid ?? Infinity),
+  );
+}
+
+function newest(group: ContentItem[]): ContentItem {
+  return group.reduce((best, item) =>
+    (item.ctime ?? 0) > (best.ctime ?? 0) ? item : best,
+  );
+}
+
+function summarizeGroup(group: ContentItem[]): Record<string, unknown> {
+  const latest = newest(group);
+  const ctimes = group.map((i) => i.ctime ?? 0);
+  return {
+    ...(latest.vmid !== undefined && { vmid: latest.vmid }),
+    ...(latest.content !== undefined && { content: latest.content }),
+    ...(latest.subtype !== undefined && { subtype: latest.subtype }),
+    count: group.length,
+    total_size: group.reduce((sum, i) => sum + (i.size ?? 0), 0),
+    oldest_ctime: Math.min(...ctimes),
+    newest_ctime: Math.max(...ctimes),
+    latest_volid: latest.volid,
+  };
+}
+
 export function registerStorageTools(
   server: McpServer,
   client: PveClient,
@@ -118,7 +165,9 @@ export function registerStorageTools(
     name: "pve_list_storage_content",
     title: "List Storage Content",
     description:
-      "List the content (disk images, ISOs, templates, backups) of a specific storage on a node",
+      "List the content (disk images, ISOs, templates, backups) of a specific storage on a node. " +
+      "Backup storages (especially PBS) can hold hundreds of snapshots — filter by vmid and/or use " +
+      "mode 'latest' (newest item per guest) or 'summary' (count, total size and time range per guest)",
     category: "storage",
     accessTier: "read-only",
     annotations: {
@@ -135,12 +184,34 @@ export function registerStorageTools(
         .describe(
           "Filter by content type (e.g. images, iso, vztmpl, backup, rootdir)",
         ),
+      vmid: z
+        .number()
+        .optional()
+        .describe("Only list content belonging to this guest (VM/CT ID)"),
+      mode: z
+        .enum(["all", "latest", "summary"])
+        .optional()
+        .describe(
+          "all (default): every item. latest: only the newest item (by ctime) per guest and content type. " +
+            "summary: one row per guest and content type with count, total_size (bytes; logical size — " +
+            "PBS deduplicates, so actual datastore usage is lower), oldest/newest ctime and latest_volid",
+        ),
     },
     handler: async (args) => {
       let path = `/nodes/${args.node}/storage/${args.storage}/content`;
-      if (args.content) path += `?content=${args.content}`;
-      const data = await client.get(path);
-      return JSON.stringify(data, null, 2);
+      const params = new URLSearchParams();
+      if (args.content) params.set("content", String(args.content));
+      if (args.vmid !== undefined) params.set("vmid", String(args.vmid));
+      const qs = params.toString();
+      if (qs) path += `?${qs}`;
+      const data = (await client.get(path)) as ContentItem[];
+      if (args.mode === "latest") {
+        return JSON.stringify(groupContent(data).map(newest));
+      }
+      if (args.mode === "summary") {
+        return JSON.stringify(groupContent(data).map(summarizeGroup));
+      }
+      return JSON.stringify(data);
     },
   });
 
