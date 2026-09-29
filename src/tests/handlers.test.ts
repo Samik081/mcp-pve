@@ -858,6 +858,24 @@ describe("handler: rrddata tools", () => {
     );
   }
 
+  it("pve_get_node_rrddata reads the node's own rrddata", async () => {
+    const data = await call("pve_get_node_rrddata", {
+      node: "pve1",
+      timeframe: "week",
+      fields: ["cpu"],
+    });
+    expect(mockClient.get).toHaveBeenCalledWith(
+      "/nodes/pve1/rrddata?timeframe=week",
+    );
+    expect(data).toMatchObject({
+      columns: ["time", "cpu"],
+      rows: [
+        [1000, 0.1],
+        [1060, 0.2],
+      ],
+    });
+  });
+
   for (const [tool, kind] of [
     ["pve_get_qemu_rrddata", "qemu"],
     ["pve_get_lxc_rrddata", "lxc"],

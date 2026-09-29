@@ -35,9 +35,12 @@ export interface RrdTable {
 }
 
 /** Tool description shared by the rrddata tools, e.g. `rrdDescription("a QEMU VM")`. */
-export function rrdDescription(subject: string): string {
+export function rrdDescription(
+  subject: string,
+  stats = "CPU, memory, disk, network, pressure",
+): string {
   return (
-    `Get RRD statistics (CPU, memory, disk, network, pressure) for ${subject} over a time period. ` +
+    `Get RRD statistics (${stats}) for ${subject} over a time period. ` +
     `Returns a compact {columns, rows} table averaged into at most ${DEFAULT_RRD_BUCKETS} time buckets, ` +
     "with fields that never change (e.g. maxmem) hoisted into `constant`. Use fields to pick columns, " +
     'cf MAX for peaks, buckets 0 for full resolution, or format "raw" for the exact PVE response'
