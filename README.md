@@ -209,7 +209,7 @@ mcp-pve provides 121 tools organized by category. Each tool's Access column show
 | `pve_list_qemu_vms` | List all QEMU VMs on a node | read-only | read-only, idempotent |
 | `pve_get_qemu_status` | Get current VM status (CPU, memory, disk, network) | read-only | read-only, idempotent |
 | `pve_get_qemu_config` | Get VM configuration | read-only | read-only, idempotent |
-| `pve_get_qemu_rrddata` | Get RRD statistics over a time period | read-only | read-only, idempotent |
+| `pve_get_qemu_rrddata` | Get RRD statistics over a time period (compact table, 60 buckets by default; `fields`, `cf`, `buckets`, `format: raw`) | read-only | read-only, idempotent |
 | `pve_list_qemu_snapshots` | List all VM snapshots | read-only | read-only, idempotent |
 | `pve_start_qemu_vm` | Start a VM | read-execute | destructive |
 | `pve_stop_qemu_vm` | Stop a VM (immediate) | read-execute | destructive |
@@ -237,7 +237,7 @@ mcp-pve provides 121 tools organized by category. Each tool's Access column show
 | `pve_list_lxc_containers` | List all LXC containers on a node | read-only | read-only, idempotent |
 | `pve_get_lxc_status` | Get current container status | read-only | read-only, idempotent |
 | `pve_get_lxc_config` | Get container configuration | read-only | read-only, idempotent |
-| `pve_get_lxc_rrddata` | Get RRD statistics over a time period | read-only | read-only, idempotent |
+| `pve_get_lxc_rrddata` | Get RRD statistics over a time period (compact table, 60 buckets by default; `fields`, `cf`, `buckets`, `format: raw`) | read-only | read-only, idempotent |
 | `pve_list_lxc_snapshots` | List all container snapshots | read-only | read-only, idempotent |
 | `pve_start_lxc_container` | Start a container | read-execute | destructive |
 | `pve_stop_lxc_container` | Stop a container (immediate) | read-execute | destructive |
@@ -419,6 +419,8 @@ Once configured, ask your AI tool questions in natural language:
 - **"List all VMs on node pve1"** -- calls `pve_list_qemu_vms` to show VMs with their status, CPU, and memory usage.
 
 - **"What's the status of VM 100?"** -- calls `pve_get_qemu_status` to show real-time resource utilization.
+
+- **"When did VM 100's CPU usage start rising today?"** -- calls `pve_get_qemu_rrddata` with `timeframe: "day"` and `fields: ["cpu"]`, which returns a compact 60-bucket table instead of ~1,400 raw samples.
 
 - **"Start container 200 on pve1"** -- calls `pve_start_lxc_container` to start the container and returns the task UPID.
 

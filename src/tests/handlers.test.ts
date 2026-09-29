@@ -825,3 +825,74 @@ describe("handler: pve_list_storage_content", () => {
     ]);
   });
 });
+
+describe("handler: rrddata tools", () => {
+  let cleanup: () => Promise<void>;
+  let mcpClient: Client;
+  let mockClient: PveClient;
+
+  const rows = [
+    { time: 1060, cpu: 0.2, maxcpu: 2 },
+    { time: 1000, cpu: 0.1, maxcpu: 2 },
+  ];
+
+  beforeEach(async () => {
+    mockClient = makeMockClient();
+    vi.mocked(mockClient.get).mockResolvedValue(rows);
+    const server = createServer();
+    registerAllTools(server, mockClient, makeConfig());
+    const conn = await connectTestClient(server);
+    mcpClient = conn.client;
+    cleanup = conn.cleanup;
+  });
+
+  afterEach(async () => {
+    await cleanup();
+  });
+
+  async function call(name: string, args: Record<string, unknown>) {
+    const result = await mcpClient.callTool({ name, arguments: args });
+    expect(result.isError).toBeFalsy();
+    return JSON.parse(
+      (result.content[0] as { type: "text"; text: string }).text,
+    );
+  }
+
+  for (const [tool, kind] of [
+    ["pve_get_qemu_rrddata", "qemu"],
+    ["pve_get_lxc_rrddata", "lxc"],
+  ] as const) {
+    it(`${tool} returns a compact table by default`, async () => {
+      const data = await call(tool, {
+        node: "pve1",
+        vmid: 100,
+        timeframe: "hour",
+      });
+      expect(mockClient.get).toHaveBeenCalledWith(
+        `/nodes/pve1/${kind}/100/rrddata?timeframe=hour`,
+      );
+      expect(data).toMatchObject({
+        constant: { maxcpu: 2 },
+        columns: ["time", "cpu"],
+        rows: [
+          [1000, 0.1],
+          [1060, 0.2],
+        ],
+      });
+    });
+
+    it(`${tool} passes cf and returns the raw response on format=raw`, async () => {
+      const data = await call(tool, {
+        node: "pve1",
+        vmid: 100,
+        timeframe: "day",
+        cf: "MAX",
+        format: "raw",
+      });
+      expect(mockClient.get).toHaveBeenCalledWith(
+        `/nodes/pve1/${kind}/100/rrddata?timeframe=day&cf=MAX`,
+      );
+      expect(data).toEqual(rows);
+    });
+  }
+});

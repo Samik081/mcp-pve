@@ -5,6 +5,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { PveClient } from "../core/client.js";
+import { getRrdData, rrdDescription, rrdInputSchema } from "../core/rrd.js";
 import { registerTool } from "../core/tools.js";
 import type { AppConfig } from "../types/index.js";
 
@@ -85,8 +86,7 @@ export function registerLxcTools(
   registerTool(server, config, {
     name: "pve_get_lxc_rrddata",
     title: "Get LXC Container RRD Data",
-    description:
-      "Get RRD statistics (CPU, memory, disk, network) for an LXC container over a time period",
+    description: rrdDescription("an LXC container"),
     category: "lxc",
     accessTier: "read-only",
     annotations: {
@@ -97,16 +97,10 @@ export function registerLxcTools(
     inputSchema: {
       node: z.string().describe("The node name"),
       vmid: z.number().describe("The container ID"),
-      timeframe: z
-        .enum(["hour", "day", "week", "month", "year"])
-        .describe("Time frame for the RRD data"),
+      ...rrdInputSchema,
     },
-    handler: async (args) => {
-      const data = await client.get(
-        `/nodes/${args.node}/lxc/${args.vmid}/rrddata?timeframe=${args.timeframe}`,
-      );
-      return JSON.stringify(data, null, 2);
-    },
+    handler: async (args) =>
+      getRrdData(client, `/nodes/${args.node}/lxc/${args.vmid}`, args),
   });
 
   registerTool(server, config, {
