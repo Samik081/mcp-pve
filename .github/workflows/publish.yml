@@ -108,6 +108,24 @@ jobs:
         run: |
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
 
+      # npm needs a moment to serve a just-published version; the registry
+      # validates the package against npm and rejects it until then.
+      - name: Wait for npm to serve this version
+        run: |
+          name=$(node -p 'require("./package.json").name')
+          version=$(node -p 'require("./package.json").version')
+          url="https://registry.npmjs.org/${name/\//%2F}/$version"
+          for i in $(seq 1 40); do
+            if curl -sf "$url" > /dev/null; then
+              echo "$name@$version is available on npm"
+              exit 0
+            fi
+            echo "Waiting for $name@$version on npm (attempt $i/40)..."
+            sleep 15
+          done
+          echo "::error::$name@$version not available on npm after 10 minutes"
+          exit 1
+
       - name: Authenticate to MCP Registry
         run: ./mcp-publisher login github-oidc
 
