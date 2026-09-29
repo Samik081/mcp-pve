@@ -700,3 +700,128 @@ describe("handler: API token tools", () => {
     );
   });
 });
+
+describe("handler: pve_list_storage_content", () => {
+  let cleanup: () => Promise<void>;
+  let mcpClient: Client;
+  let mockClient: PveClient;
+
+  const backups = [
+    {
+      volid: "pbs:backup/vm/100/2026-09-01T02:00:00Z",
+      content: "backup",
+      subtype: "qemu",
+      vmid: 100,
+      ctime: 1000,
+      size: 10,
+    },
+    {
+      volid: "pbs:backup/vm/100/2026-09-03T02:00:00Z",
+      content: "backup",
+      subtype: "qemu",
+      vmid: 100,
+      ctime: 3000,
+      size: 30,
+    },
+    {
+      volid: "pbs:backup/ct/101/2026-09-02T02:00:00Z",
+      content: "backup",
+      subtype: "lxc",
+      vmid: 101,
+      ctime: 2000,
+      size: 5,
+    },
+    {
+      volid: "pbs:backup/vm/100/2026-09-02T02:00:00Z",
+      content: "backup",
+      subtype: "qemu",
+      vmid: 100,
+      ctime: 2000,
+      size: 20,
+    },
+    { volid: "local:iso/debian.iso", content: "iso", ctime: 500, size: 7 },
+  ];
+
+  async function call(args: Record<string, unknown>) {
+    const result = await mcpClient.callTool({
+      name: "pve_list_storage_content",
+      arguments: { node: "pve1", storage: "pbs", ...args },
+    });
+    expect(result.isError).toBeFalsy();
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+    return { text, data: JSON.parse(text) };
+  }
+
+  beforeEach(async () => {
+    mockClient = makeMockClient();
+    vi.mocked(mockClient.get).mockResolvedValue(backups);
+    const server = createServer();
+    registerAllTools(server, mockClient, makeConfig());
+    const conn = await connectTestClient(server);
+    mcpClient = conn.client;
+    cleanup = conn.cleanup;
+  });
+
+  afterEach(async () => {
+    await cleanup();
+  });
+
+  it("returns the full list as compact JSON by default", async () => {
+    const { text, data } = await call({});
+    expect(mockClient.get).toHaveBeenCalledWith(
+      "/nodes/pve1/storage/pbs/content",
+    );
+    expect(data).toEqual(backups);
+    expect(text).not.toContain("\n");
+  });
+
+  it("passes content and vmid filters to the API", async () => {
+    await call({ content: "backup", vmid: 100 });
+    expect(mockClient.get).toHaveBeenCalledWith(
+      "/nodes/pve1/storage/pbs/content?content=backup&vmid=100",
+    );
+  });
+
+  it("mode=latest keeps the newest item per guest and content type", async () => {
+    const { data } = await call({ mode: "latest" });
+    expect(data.map((i: { volid: string }) => i.volid)).toEqual([
+      "pbs:backup/vm/100/2026-09-03T02:00:00Z",
+      "pbs:backup/ct/101/2026-09-02T02:00:00Z",
+      "local:iso/debian.iso",
+    ]);
+  });
+
+  it("mode=summary aggregates count, size and time range per guest", async () => {
+    const { data } = await call({ mode: "summary" });
+    expect(data).toEqual([
+      {
+        vmid: 100,
+        content: "backup",
+        subtype: "qemu",
+        count: 3,
+        total_size: 60,
+        oldest_ctime: 1000,
+        newest_ctime: 3000,
+        latest_volid: "pbs:backup/vm/100/2026-09-03T02:00:00Z",
+      },
+      {
+        vmid: 101,
+        content: "backup",
+        subtype: "lxc",
+        count: 1,
+        total_size: 5,
+        oldest_ctime: 2000,
+        newest_ctime: 2000,
+        latest_volid: "pbs:backup/ct/101/2026-09-02T02:00:00Z",
+      },
+      {
+        content: "iso",
+        count: 1,
+        total_size: 7,
+        oldest_ctime: 500,
+        newest_ctime: 500,
+        latest_volid: "local:iso/debian.iso",
+      },
+    ]);
+  });
+});

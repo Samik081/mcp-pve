@@ -264,7 +264,7 @@ mcp-pve provides 121 tools organized by category. Each tool's Access column show
 | `pve_get_storage_config` | Get storage backend configuration | read-only | read-only, idempotent |
 | `pve_list_node_storage` | List available storage on a node with usage info | read-only | read-only, idempotent |
 | `pve_get_storage_status` | Get storage status and usage on a node | read-only | read-only, idempotent |
-| `pve_list_storage_content` | List storage content (images, ISOs, backups) | read-only | read-only, idempotent |
+| `pve_list_storage_content` | List storage content (images, ISOs, backups); filter by `vmid`, or `mode` `latest` / `summary` per guest | read-only | read-only, idempotent |
 | `pve_pull_oci_image` | Pull an OCI container image into a storage's template cache (PVE 9.1+) | read-execute | — |
 | `pve_create_storage` | Create a new storage backend | full | — |
 | `pve_update_storage` | Update storage configuration | full | destructive, idempotent |
@@ -425,6 +425,8 @@ Once configured, ask your AI tool questions in natural language:
 - **"Create a snapshot of VM 100 called pre-upgrade"** -- calls `pve_create_qemu_snapshot` to create a snapshot before changes.
 
 - **"Show me the cluster resources"** -- calls `pve_list_cluster_resources` to show all VMs, containers, storage, and nodes.
+
+- **"When was the latest backup of VM 100 on PBS?"** -- calls `pve_list_storage_content` with `vmid: 100` and `mode: "latest"`, instead of dumping every snapshot on the datastore.
 
 - **"Migrate VM 100 to node pve2"** -- calls `pve_migrate_qemu_vm` to live-migrate the VM to another node.
 
