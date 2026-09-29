@@ -5,6 +5,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { PveClient } from "../core/client.js";
+import { getRrdData, rrdDescription, rrdInputSchema } from "../core/rrd.js";
 import { registerTool } from "../core/tools.js";
 import type { AppConfig } from "../types/index.js";
 
@@ -51,6 +52,27 @@ export function registerNodeTools(
       const data = await client.get(`/nodes/${args.node}/status`);
       return JSON.stringify(data, null, 2);
     },
+  });
+
+  registerTool(server, config, {
+    name: "pve_get_node_rrddata",
+    title: "Get Node RRD Data",
+    description: rrdDescription(
+      "a node itself (host-level, not per guest)",
+      "CPU, IO wait, load average, memory, swap, root filesystem, network, pressure",
+    ),
+    category: "nodes",
+    accessTier: "read-only",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
+    inputSchema: {
+      node: z.string().describe("The node name"),
+      ...rrdInputSchema,
+    },
+    handler: async (args) => getRrdData(client, `/nodes/${args.node}`, args),
   });
 
   registerTool(server, config, {

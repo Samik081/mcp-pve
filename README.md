@@ -9,7 +9,7 @@ MCP server for [Proxmox VE](https://www.proxmox.com/en/proxmox-virtual-environme
 
 ## Features
 
-- **121 tools** across **12 categories** covering the Proxmox VE REST API
+- **122 tools** across **12 categories** covering the Proxmox VE REST API
 - **Three access tiers** (`read-only`, `read-execute`, `full`) for granular control
 - **Category filtering** via `PVE_CATEGORIES` to expose only the tools you need
 - **Zero HTTP dependencies** -- uses native `fetch` (Node 22+)
@@ -144,15 +144,15 @@ Control which tools are available using the `PVE_ACCESS_TIER` environment variab
 
 | Tier | Tools | Description |
 |------|-------|-------------|
-| `full` (default) | 121 | Read, execute, and write -- full control |
-| `read-execute` | 76 | Read and execute -- no resource creation/deletion |
-| `read-only` | 54 | Read only -- safe for exploration, no state changes |
+| `full` (default) | 122 | Read, execute, and write -- full control |
+| `read-execute` | 77 | Read and execute -- no resource creation/deletion |
+| `read-only` | 55 | Read only -- safe for exploration, no state changes |
 
 **Tier details:**
 
-- **full**: All 121 tools. Includes creating/deleting VMs, containers, storage, users, firewall rules, and more.
-- **read-execute**: 76 tools. All read tools plus power actions (start, stop, migrate), bulk guest actions, OCI image pull, backup execution, and task management.
-- **read-only**: 54 tools. List, get, status, and log tools only. No state changes.
+- **full**: All 122 tools. Includes creating/deleting VMs, containers, storage, users, firewall rules, and more.
+- **read-execute**: 77 tools. All read tools plus power actions (start, stop, migrate), bulk guest actions, OCI image pull, backup execution, and task management.
+- **read-only**: 55 tools. List, get, status, and log tools only. No state changes.
 
 Tools that are not available in your tier are not registered with the MCP server. They will not appear in your AI tool's tool list, keeping the context clean.
 
@@ -183,15 +183,16 @@ Create API tokens in the PVE UI under **Datacenter > Permissions > API Tokens**.
 
 ## Tools
 
-mcp-pve provides 121 tools organized by category. Each tool's Access column shows the minimum tier required: `read-only` (available in all tiers), `read-execute` (requires `read-execute` or `full`), or `full` (requires `full` tier only). The Hints column shows tool behavior: `read-only` (no state changes), `destructive` (modifies existing state), `idempotent` (same result if called twice).
+mcp-pve provides 122 tools organized by category. Each tool's Access column shows the minimum tier required: `read-only` (available in all tiers), `read-execute` (requires `read-execute` or `full`), or `full` (requires `full` tier only). The Hints column shows tool behavior: `read-only` (no state changes), `destructive` (modifies existing state), `idempotent` (same result if called twice).
 
 <details>
-<summary>Nodes (8 tools)</summary>
+<summary>Nodes (9 tools)</summary>
 
 | Tool | Description | Access | Hints |
 |------|-------------|--------|-------|
 | `pve_list_nodes` | List all nodes in the cluster | read-only | read-only, idempotent |
 | `pve_get_node_status` | Get detailed node status (CPU, memory, uptime, load) | read-only | read-only, idempotent |
+| `pve_get_node_rrddata` | Get node RRD statistics over a time period (CPU, IO wait, load, memory, network; same compact/bucketed output as guest rrddata) | read-only | read-only, idempotent |
 | `pve_get_node_version` | Get PVE version info for a node | read-only | read-only, idempotent |
 | `pve_get_node_dns` | Get DNS settings for a node | read-only | read-only, idempotent |
 | `pve_get_node_time` | Get time and timezone info for a node | read-only | read-only, idempotent |
@@ -446,7 +447,7 @@ If your PVE instance uses a self-signed certificate, set `PVE_VERIFY_SSL=false`.
 
 ### Tools not showing up
 
-Check your access tier setting. In `read-only` mode, only 54 tools are registered. In `read-execute` mode, 76 tools are registered. Use `full` (or omit `PVE_ACCESS_TIER`) for all 121 tools. Check `PVE_CATEGORIES` -- only tools in listed categories are registered. Also verify the server started without errors by checking stderr output.
+Check your access tier setting. In `read-only` mode, only 55 tools are registered. In `read-execute` mode, 77 tools are registered. Use `full` (or omit `PVE_ACCESS_TIER`) for all 122 tools. Check `PVE_CATEGORIES` -- only tools in listed categories are registered. Also verify the server started without errors by checking stderr output.
 
 ## Development
 
