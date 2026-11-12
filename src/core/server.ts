@@ -106,11 +106,76 @@ function badRequest(res: ServerResponse, message: string): void {
   );
 }
 
+function forbidden(res: ServerResponse, message: string): void {
+  res.writeHead(403, { "Content-Type": "application/json" });
+  res.end(
+    JSON.stringify({
+      jsonrpc: "2.0",
+      error: { code: -32000, message: `Forbidden: ${message}` },
+      id: null,
+    }),
+  );
+}
+
+const LOOPBACK_HOSTS = ["localhost", "127.0.0.1", "[::1]"];
+
+/**
+ * Hostnames accepted in the Host and Origin headers, or undefined when
+ * validation is off.
+ *
+ * Without this check a web page can use DNS rebinding to reach a server on
+ * the visitor's machine as if it were same-origin and call every tool. A
+ * loopback bind is only ever reached under a loopback name, so those are
+ * enforced automatically. A non-loopback bind (containers, reverse proxies)
+ * is reached under names only the operator knows, so validation applies only
+ * when they are listed in MCP_ALLOWED_HOSTS.
+ */
+export function resolveAllowedHosts(
+  httpHost: string,
+  extraHosts: string[],
+): Set<string> | undefined {
+  const loopback = ["localhost", "127.0.0.1", "::1", "[::1]"].includes(
+    httpHost.toLowerCase(),
+  );
+  if (!loopback && extraHosts.length === 0) return undefined;
+  return new Set([...(loopback ? LOOPBACK_HOSTS : []), ...extraHosts]);
+}
+
+/** Lower-cased hostname of a Host header value or an Origin URL. */
+function hostnameOf(value: string, isUrl: boolean): string | undefined {
+  try {
+    return new URL(isUrl ? value : `http://${value}`).hostname.toLowerCase();
+  } catch {
+    return undefined;
+  }
+}
+
+/** Returns the reason a request is refused, or undefined when it is allowed. */
+function hostValidationError(
+  req: IncomingMessage,
+  allowedHosts: Set<string>,
+): string | undefined {
+  const host = hostnameOf(req.headers.host ?? "", false);
+  if (!host || !allowedHosts.has(host)) {
+    return "Host header not allowed";
+  }
+  // Non-browser clients send no Origin; browsers always do cross-origin.
+  const origin = req.headers.origin;
+  if (origin !== undefined) {
+    const originHost = hostnameOf(origin, true);
+    if (!originHost || !allowedHosts.has(originHost)) {
+      return "Origin header not allowed";
+    }
+  }
+  return undefined;
+}
+
 async function startHttpServer(
   config: AppConfig,
   serverFactory: () => McpServer,
 ): Promise<HttpServer> {
   const { httpHost, httpPort, sessionIdleTimeoutMs } = config;
+  const allowedHosts = resolveAllowedHosts(httpHost, config.allowedHosts);
 
   // Sessions are only removed by the SDK when a client sends DELETE. Clients
   // that simply disconnect (proxies, gateway restarts, crashes) would otherwise
@@ -168,6 +233,16 @@ async function startHttpServer(
       }
 
       if (url === "/") {
+        if (allowedHosts) {
+          const refusal = hostValidationError(req, allowedHosts);
+          if (refusal) {
+            logger.warn(
+              `Rejected ${req.method} request: ${refusal} (Host: ${JSON.stringify(req.headers.host)}, Origin: ${JSON.stringify(req.headers.origin)}). Add the hostname to MCP_ALLOWED_HOSTS if this client is legitimate.`,
+            );
+            forbidden(res, refusal);
+            return;
+          }
+        }
         try {
           if (req.method === "POST") {
             const body = await parseJsonBody(req);
@@ -269,6 +344,11 @@ async function startHttpServer(
       logger.info(
         `${SERVER_NAME} v${pkg.version} listening on http://${httpHost}:${boundPort}`,
       );
+      if (!allowedHosts) {
+        logger.warn(
+          `Bound to ${httpHost} without MCP_ALLOWED_HOSTS: Host/Origin validation is off and HTTP transport has no authentication. Only expose this port to trusted networks.`,
+        );
+      }
       resolve();
     });
     httpServer.once("error", reject);

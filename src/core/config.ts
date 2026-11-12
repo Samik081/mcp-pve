@@ -20,6 +20,37 @@ function parseAccessTier(): AccessTier {
   return "full";
 }
 
+/**
+ * Parse MCP_ALLOWED_HOSTS: comma-separated hostnames accepted in the Host and
+ * Origin headers of HTTP requests. Ports are ignored; IPv6 must be bracketed.
+ */
+export function parseAllowedHosts(value: string | undefined): string[] {
+  const hosts: string[] = [];
+  for (const entry of (value ?? "").split(",")) {
+    const raw = entry.trim();
+    if (raw === "") continue;
+    let url: URL | undefined;
+    try {
+      url = new URL(`http://${raw}`);
+    } catch {
+      // handled below
+    }
+    if (
+      !url ||
+      raw.includes("/") ||
+      url.username !== "" ||
+      url.search !== "" ||
+      url.hash !== ""
+    ) {
+      throw new Error(
+        `Invalid MCP_ALLOWED_HOSTS entry: "${raw}". Expected a hostname or IP (e.g. "mcp.example.com", "[::1]"), without scheme or path.`,
+      );
+    }
+    hosts.push(url.hostname.toLowerCase());
+  }
+  return hosts;
+}
+
 function parseToolList(value: string | undefined): string[] | null {
   if (value === undefined || value === "") {
     return null;
@@ -92,7 +123,8 @@ export function loadConfig(): AppConfig {
       `Invalid MCP_PORT: "${rawPort}". Must be an integer between 1 and 65535.`,
     );
   }
-  const httpHost = process.env.MCP_HOST ?? "0.0.0.0";
+  const httpHost = process.env.MCP_HOST ?? "127.0.0.1";
+  const allowedHosts = parseAllowedHosts(process.env.MCP_ALLOWED_HOSTS);
 
   // Idle HTTP sessions are closed after this many seconds (0 disables).
   const rawIdleTimeout = process.env.MCP_SESSION_IDLE_TIMEOUT ?? "1800";
@@ -122,6 +154,7 @@ export function loadConfig(): AppConfig {
     transport,
     httpPort,
     httpHost,
+    allowedHosts,
     sessionIdleTimeoutMs,
   };
 }

@@ -19,7 +19,8 @@ export function makeConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     debug: false,
     transport: "stdio",
     httpPort: 3000,
-    httpHost: "0.0.0.0",
+    httpHost: "127.0.0.1",
+    allowedHosts: [],
     sessionIdleTimeoutMs: 1_800_000,
     ...overrides,
   };
