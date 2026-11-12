@@ -9,6 +9,46 @@ import { getRrdData, rrdDescription, rrdInputSchema } from "../core/rrd.js";
 import { registerTool } from "../core/tools.js";
 import type { AppConfig } from "../types/index.js";
 
+/** Appends the defined params as a query string; booleans become 1/0. */
+function withQuery(path: string, params: Record<string, unknown>): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined) continue;
+    search.set(
+      key,
+      typeof value === "boolean" ? (value ? "1" : "0") : String(value),
+    );
+  }
+  const qs = search.toString();
+  return qs ? `${path}?${qs}` : path;
+}
+
+/** Journal responses mix entries with cursor and host marker elements. */
+function isJournalEntry(element: unknown): boolean {
+  if (typeof element === "string") return !/^s=[0-9a-f]+;i=/.test(element);
+  return !(element as { ty?: unknown } | null)?.ty;
+}
+
+/** Keeps the version fields of PVE package objects, dropping descriptions. */
+function slimPackages(data: unknown): unknown {
+  if (!Array.isArray(data)) return data;
+  return data.map((pkg) => {
+    const slim: Record<string, unknown> = {};
+    for (const key of [
+      "Package",
+      "OldVersion",
+      "Version",
+      "RunningKernel",
+      "ManagerVersion",
+    ]) {
+      if (pkg?.[key] !== undefined) slim[key] = pkg[key];
+    }
+    if (pkg?.CurrentState && pkg.CurrentState !== "Installed")
+      slim.CurrentState = pkg.CurrentState;
+    return slim;
+  });
+}
+
 export function registerNodeTools(
   server: McpServer,
   client: PveClient,
@@ -190,7 +230,7 @@ export function registerNodeTools(
     name: "pve_get_node_journal",
     title: "Get Node Journal",
     description:
-      "Read the systemd journal of a specific node, optionally filtered by time range, cursor, priority, syslog identifier, systemd unit, or kernel messages. Without a range or cursor, returns the last 50 entries by default. The priority, service, unit, kernel and structured filters need a recent PVE 9.x",
+      "Read a node's systemd journal (last 50 entries by default). The priority, service, unit, kernel and structured filters need a recent PVE 9.x",
     category: "nodes",
     accessTier: "read-only",
     annotations: {
@@ -205,35 +245,43 @@ export function registerNodeTools(
         .int()
         .min(0)
         .optional()
-        .describe("Entries since this UNIX epoch (conflicts with startcursor)"),
+        .describe("Entries since this UNIX epoch (not with startcursor)"),
       until: z
         .number()
         .int()
         .min(0)
         .optional()
-        .describe("Entries until this UNIX epoch (conflicts with endcursor)"),
+        .describe("Entries until this UNIX epoch (not with endcursor)"),
       lastentries: z
         .number()
         .int()
         .min(0)
         .optional()
         .describe(
-          "Limit to the last N entries (conflicts with a range; default: 50 when no range or cursor is given)",
+          "Last N entries (not with since/until/cursors; default 50 when none are given)",
         ),
       startcursor: z
         .string()
         .optional()
-        .describe("Start after this journal cursor (conflicts with since)"),
+        .describe("Start after this journal cursor (not with since)"),
       endcursor: z
         .string()
         .optional()
-        .describe("End before this journal cursor (conflicts with until)"),
+        .describe("End before this journal cursor (not with until)"),
+      limit: z
+        .number()
+        .int()
+        .min(1)
+        .optional()
+        .describe(
+          "Max entries returned for since/until/cursor queries, newest kept (default 200)",
+        ),
       // Checked with refine() rather than regex()/max(): the patterns and
       // maxLength would end up in the published JSON schema, and some MCP
       // clients then drop the whole schema for this tool.
       priority: z
         .string()
-        .refine((v) => /^([0-7](\.\.[0-7])?)?$/.test(v), {
+        .refine((v) => /^[0-7](\.\.[0-7])?$/.test(v), {
           message: "Expected a level 0-7 or a 'LOW..HIGH' range",
         })
         .optional()
@@ -267,35 +315,45 @@ export function registerNodeTools(
         ),
     },
     handler: async (args) => {
-      let path = `/nodes/${args.node}/journal`;
-      const params = new URLSearchParams();
-      for (const key of [
-        "since",
-        "until",
-        "lastentries",
-        "startcursor",
-        "endcursor",
-        "priority",
-        "service",
-        "unit",
-      ] as const) {
-        if (args[key] !== undefined) params.set(key, String(args[key]));
-      }
-      if (args.kernel !== undefined)
-        params.set("kernel", args.kernel ? "1" : "0");
-      if (args.structured !== undefined)
-        params.set("structured", args.structured ? "1" : "0");
       const hasRange =
         args.since !== undefined ||
         args.until !== undefined ||
         args.startcursor !== undefined ||
         args.endcursor !== undefined;
-      if (args.lastentries === undefined && !hasRange)
-        params.set("lastentries", "50");
-      const qs = params.toString();
-      if (qs) path += `?${qs}`;
-      const data = await client.get(path);
-      return JSON.stringify(data, null, 2);
+      // PVE answers these combinations with an empty body, not an error.
+      if (args.lastentries !== undefined && hasRange)
+        throw new Error(
+          "lastentries cannot be combined with since, until, startcursor or endcursor",
+        );
+      if (args.since !== undefined && args.startcursor !== undefined)
+        throw new Error("since cannot be combined with startcursor");
+      if (args.until !== undefined && args.endcursor !== undefined)
+        throw new Error("until cannot be combined with endcursor");
+
+      const data = await client.get(
+        withQuery(`/nodes/${args.node}/journal`, {
+          since: args.since,
+          until: args.until,
+          lastentries: args.lastentries ?? (hasRange ? undefined : 50),
+          startcursor: args.startcursor,
+          endcursor: args.endcursor,
+          priority: args.priority,
+          service: args.service,
+          unit: args.unit,
+          kernel: args.kernel,
+          structured: args.structured,
+        }),
+      );
+
+      // PVE has no entry limit for range queries, so cap them here. The
+      // response ends with the end cursor, which is kept.
+      const limit = (args.limit as number | undefined) ?? 200;
+      if (hasRange && Array.isArray(data)) {
+        const total = data.filter(isJournalEntry).length;
+        if (total > limit)
+          return `Truncated to the newest ${limit} of ${total} entries; narrow the range or raise limit\n${JSON.stringify(data.slice(-(limit + 1)))}`;
+      }
+      return JSON.stringify(data);
     },
   });
 
@@ -303,7 +361,7 @@ export function registerNodeTools(
     name: "pve_list_node_disks",
     title: "List Node Disks",
     description:
-      "List local disks of a specific node with model, serial, size, usage, wearout and SMART health",
+      "List a node's local disks with model, serial, size, usage, wearout and SMART health",
     category: "nodes",
     accessTier: "read-only",
     annotations: {
@@ -324,27 +382,21 @@ export function registerNodeTools(
         .describe("Only list disks of this type"),
     },
     handler: async (args) => {
-      let path = `/nodes/${args.node}/disks/list`;
-      const params = new URLSearchParams();
-      if (args["include-partitions"] !== undefined)
-        params.set(
-          "include-partitions",
-          args["include-partitions"] ? "1" : "0",
-        );
-      if (args.skipsmart !== undefined)
-        params.set("skipsmart", args.skipsmart ? "1" : "0");
-      if (args.type !== undefined) params.set("type", String(args.type));
-      const qs = params.toString();
-      if (qs) path += `?${qs}`;
-      const data = await client.get(path);
-      return JSON.stringify(data, null, 2);
+      const data = await client.get(
+        withQuery(`/nodes/${args.node}/disks/list`, {
+          "include-partitions": args["include-partitions"],
+          skipsmart: args.skipsmart,
+          type: args.type,
+        }),
+      );
+      return JSON.stringify(data);
     },
   });
 
   registerTool(server, config, {
     name: "pve_get_node_disk_smart",
     title: "Get Node Disk SMART",
-    description: "Get SMART health and attributes of a disk on a specific node",
+    description: "Get SMART health and attributes of a node's disk",
     category: "nodes",
     accessTier: "read-only",
     annotations: {
@@ -356,29 +408,33 @@ export function registerNodeTools(
       node: z.string().describe("The node name"),
       disk: z
         .string()
-        .regex(/^\/dev\/[a-zA-Z0-9/]+$/)
-        .describe("Block device path (e.g. /dev/sda, /dev/nvme0n1)"),
+        .regex(
+          /^\/dev\/[a-zA-Z0-9/]+$/,
+          "Expected a device path like /dev/sda (the devpath from pve_list_node_disks, not a by-id link)",
+        )
+        .describe(
+          "Device path: devpath from pve_list_node_disks (e.g. /dev/sda), not a by-id link",
+        ),
       healthonly: z
         .boolean()
         .optional()
         .describe("Return only the health status"),
     },
     handler: async (args) => {
-      const params = new URLSearchParams({ disk: String(args.disk) });
-      if (args.healthonly !== undefined)
-        params.set("healthonly", args.healthonly ? "1" : "0");
       const data = await client.get(
-        `/nodes/${args.node}/disks/smart?${params.toString()}`,
+        withQuery(`/nodes/${args.node}/disks/smart`, {
+          disk: args.disk,
+          healthonly: args.healthonly,
+        }),
       );
-      return JSON.stringify(data, null, 2);
+      return JSON.stringify(data);
     },
   });
 
   registerTool(server, config, {
     name: "pve_list_node_lvm",
     title: "List Node LVM",
-    description:
-      "List LVM volume groups and their physical volumes on a specific node",
+    description: "List a node's LVM volume groups and their physical volumes",
     category: "nodes",
     accessTier: "read-only",
     annotations: {
@@ -391,15 +447,14 @@ export function registerNodeTools(
     },
     handler: async (args) => {
       const data = await client.get(`/nodes/${args.node}/disks/lvm`);
-      return JSON.stringify(data, null, 2);
+      return JSON.stringify(data);
     },
   });
 
   registerTool(server, config, {
     name: "pve_list_node_lvmthin",
     title: "List Node LVM Thin Pools",
-    description:
-      "List LVM thin pools on a specific node with data and metadata usage",
+    description: "List a node's LVM thin pools with data and metadata usage",
     category: "nodes",
     accessTier: "read-only",
     annotations: {
@@ -412,7 +467,7 @@ export function registerNodeTools(
     },
     handler: async (args) => {
       const data = await client.get(`/nodes/${args.node}/disks/lvmthin`);
-      return JSON.stringify(data, null, 2);
+      return JSON.stringify(data);
     },
   });
 
@@ -420,7 +475,7 @@ export function registerNodeTools(
     name: "pve_list_node_package_versions",
     title: "List Node Package Versions",
     description:
-      "List installed versions of the Proxmox VE related packages on a specific node (like pveversion -v)",
+      "List a node's Proxmox VE related packages (like pveversion -v): OldVersion is installed, Version is the candidate",
     category: "nodes",
     accessTier: "read-only",
     annotations: {
@@ -433,7 +488,7 @@ export function registerNodeTools(
     },
     handler: async (args) => {
       const data = await client.get(`/nodes/${args.node}/apt/versions`);
-      return JSON.stringify(data, null, 2);
+      return JSON.stringify(slimPackages(data));
     },
   });
 
@@ -441,7 +496,7 @@ export function registerNodeTools(
     name: "pve_list_node_apt_updates",
     title: "List Node APT Updates",
     description:
-      "List available package updates on a specific node, as of the last package database refresh. Requires Sys.Modify on /nodes/{node}",
+      "List a node's available package updates, as of the last package database refresh. Requires Sys.Modify on /nodes/{node}",
     category: "nodes",
     accessTier: "read-only",
     annotations: {
@@ -454,7 +509,7 @@ export function registerNodeTools(
     },
     handler: async (args) => {
       const data = await client.get(`/nodes/${args.node}/apt/update`);
-      return JSON.stringify(data, null, 2);
+      return JSON.stringify(slimPackages(data));
     },
   });
 

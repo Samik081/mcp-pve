@@ -981,6 +981,104 @@ describe("handler: node disk, journal and apt tools", () => {
     expect(mockClient.get).not.toHaveBeenCalled();
   });
 
+  it("pve_get_node_journal rejects an empty priority", async () => {
+    const result = await mcpClient.callTool({
+      name: "pve_get_node_journal",
+      arguments: { node: "pve1", priority: "" },
+    });
+    expect(result.isError).toBe(true);
+    expect(mockClient.get).not.toHaveBeenCalled();
+  });
+
+  for (const args of [
+    { since: 1000, lastentries: 10 },
+    { endcursor: "s=abc;i=1", lastentries: 10 },
+    { since: 1000, startcursor: "s=abc;i=1" },
+    { until: 2000, endcursor: "s=abc;i=1" },
+  ]) {
+    it(`pve_get_node_journal rejects ${Object.keys(args).join(" with ")}`, async () => {
+      const result = await mcpClient.callTool({
+        name: "pve_get_node_journal",
+        arguments: { node: "pve1", ...args },
+      });
+      expect(result.isError).toBe(true);
+      expect(mockClient.get).not.toHaveBeenCalled();
+    });
+  }
+
+  it("pve_get_node_journal caps range queries to the newest entries", async () => {
+    vi.mocked(mockClient.get).mockResolvedValue([
+      "s=aaa;i=1;b=bbb",
+      "line 1",
+      "line 2",
+      "line 3",
+      "s=aaa;i=4;b=bbb",
+    ]);
+    const result = await call("pve_get_node_journal", {
+      node: "pve1",
+      since: 1000,
+      limit: 2,
+    });
+    expect(mockClient.get).toHaveBeenCalledWith(
+      "/nodes/pve1/journal?since=1000",
+    );
+    expect((result.content as { text: string }[])[0].text).toBe(
+      'Truncated to the newest 2 of 3 entries; narrow the range or raise limit\n["line 2","line 3","s=aaa;i=4;b=bbb"]',
+    );
+  });
+
+  it("pve_get_node_journal returns range queries under the limit unchanged", async () => {
+    const data = [
+      { ty: "cursor", c: "s=aaa;i=1" },
+      { ty: "host", h: "pve1" },
+      { t: 1, msg: "one" },
+      { ty: "cursor", c: "s=aaa;i=2" },
+    ];
+    vi.mocked(mockClient.get).mockResolvedValue(data);
+    const result = await call("pve_get_node_journal", {
+      node: "pve1",
+      since: 1000,
+      structured: true,
+      limit: 1,
+    });
+    expect((result.content as { text: string }[])[0].text).toBe(
+      JSON.stringify(data),
+    );
+  });
+
+  it("package tools keep only the version fields", async () => {
+    vi.mocked(mockClient.get).mockResolvedValue([
+      {
+        Package: "pve-manager",
+        OldVersion: "9.2.4",
+        Version: "9.2.26",
+        ManagerVersion: "9.2.4/abc",
+        CurrentState: "Installed",
+        Description: "long text",
+        Title: "title",
+        Arch: "all",
+      },
+      { Package: "ceph", Version: "19.2.6", CurrentState: "NotInstalled" },
+    ]);
+    for (const tool of [
+      "pve_list_node_package_versions",
+      "pve_list_node_apt_updates",
+    ]) {
+      const result = await call(tool, { node: "pve1" });
+      expect((result.content as { text: string }[])[0].text).toBe(
+        JSON.stringify([
+          {
+            Package: "pve-manager",
+            OldVersion: "9.2.4",
+            Version: "9.2.26",
+            ManagerVersion: "9.2.4/abc",
+          },
+          { Package: "ceph", Version: "19.2.6", CurrentState: "NotInstalled" },
+        ]),
+      );
+    }
+  });
+
   it("pve_list_node_disks passes include-partitions and type", async () => {
     await call("pve_list_node_disks", {
       node: "pve1",
@@ -1040,6 +1138,7 @@ describe("schema: pve_get_node_journal", () => {
       "lastentries",
       "startcursor",
       "endcursor",
+      "limit",
       "priority",
       "service",
       "unit",
