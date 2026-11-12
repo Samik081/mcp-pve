@@ -1,6 +1,11 @@
 import { request as httpRequest, type IncomingMessage } from "node:http";
 import { afterEach, describe, expect, it } from "vitest";
-import { createServer, startServer } from "../core/server.js";
+import { parseAllowedHosts } from "../core/config.js";
+import {
+  createServer,
+  resolveAllowedHosts,
+  startServer,
+} from "../core/server.js";
 import { registerAllTools } from "../tools/index.js";
 import type { AppConfig } from "../types/index.js";
 import { makeConfig, makeMockClient } from "./helpers.js";
@@ -526,5 +531,227 @@ describe("HTTP idle session reaping", () => {
 
     const res = await toolsList(port, sessionId);
     expect(res.status).toBe(200);
+  });
+});
+
+describe("HTTP Host/Origin validation (DNS rebinding protection)", () => {
+  const servers: Array<() => Promise<void>> = [];
+
+  afterEach(async () => {
+    for (const cleanup of servers) {
+      await cleanup();
+    }
+    servers.length = 0;
+  });
+
+  async function startTestServer(
+    overrides: Partial<AppConfig> = {},
+  ): Promise<number> {
+    const { config, factory } = makeServerFactory(overrides);
+    const httpServer = await startServer(factory(), config, factory);
+    if (!httpServer) {
+      throw new Error("startServer did not return an http.Server");
+    }
+    servers.push(
+      () =>
+        new Promise<void>((resolve, reject) => {
+          httpServer.closeAllConnections();
+          httpServer.close((err) => (err ? reject(err) : resolve()));
+        }),
+    );
+    const address = httpServer.address();
+    if (typeof address !== "object" || address === null) {
+      throw new Error("http.Server is not bound to a TCP port");
+    }
+    return address.port;
+  }
+
+  /** Sends an initialize POST (or a GET to `path`) with spoofed headers. */
+  async function sendWithHeaders(
+    port: number,
+    extraHeaders: Record<string, string>,
+    path = "/",
+  ): Promise<{ status: number; body: string }> {
+    return new Promise((resolve, reject) => {
+      const isMcp = path === "/";
+      const req = httpRequest(
+        {
+          hostname: "127.0.0.1",
+          port,
+          path,
+          method: isMcp ? "POST" : "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json, text/event-stream",
+            ...extraHeaders,
+          },
+        },
+        (res) => {
+          let body = "";
+          res.on("data", (chunk: Buffer) => {
+            body += chunk.toString();
+          });
+          res.on("end", () => resolve({ status: res.statusCode ?? 0, body }));
+        },
+      );
+      req.on("error", reject);
+      if (isMcp) req.write(JSON.stringify(initializeRequest()));
+      req.end();
+    });
+  }
+
+  it("rejects a non-loopback Host header when bound to loopback", async () => {
+    const port = await startTestServer();
+
+    const res = await sendWithHeaders(port, { Host: `evil.example:${port}` });
+    expect(res.status).toBe(403);
+    expect(JSON.parse(res.body).error.message).toMatch(/host/i);
+  });
+
+  it("accepts loopback Host headers when bound to loopback", async () => {
+    const port = await startTestServer();
+
+    for (const host of ["localhost", "127.0.0.1", "[::1]"]) {
+      const res = await sendWithHeaders(port, { Host: `${host}:${port}` });
+      expect(res.status).toBe(200);
+    }
+  });
+
+  it("rejects a foreign Origin even when Host is allowed", async () => {
+    const port = await startTestServer();
+
+    const res = await sendWithHeaders(port, {
+      Origin: "http://evil.example",
+    });
+    expect(res.status).toBe(403);
+    expect(JSON.parse(res.body).error.message).toMatch(/origin/i);
+  });
+
+  it("rejects an opaque (null) Origin", async () => {
+    const port = await startTestServer();
+
+    const res = await sendWithHeaders(port, { Origin: "null" });
+    expect(res.status).toBe(403);
+  });
+
+  it("accepts a loopback Origin on any port", async () => {
+    const port = await startTestServer();
+
+    const res = await sendWithHeaders(port, {
+      Origin: "http://localhost:6274",
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it("accepts hosts listed in allowedHosts", async () => {
+    const port = await startTestServer({ allowedHosts: ["mcp.example"] });
+
+    const res = await sendWithHeaders(port, {
+      Host: "mcp.example",
+      Origin: "https://mcp.example",
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it("rejects GET and DELETE with a foreign Host", async () => {
+    const port = await startTestServer();
+    const init = await sendPost(port, initializeRequest());
+    const sessionId = init.headers["mcp-session-id"];
+
+    for (const method of ["GET", "DELETE"]) {
+      const status = await new Promise<number>((resolve, reject) => {
+        const req = httpRequest(
+          {
+            hostname: "127.0.0.1",
+            port,
+            path: "/",
+            method,
+            headers: { Host: "evil.example", "mcp-session-id": sessionId },
+          },
+          (res) => {
+            res.resume();
+            resolve(res.statusCode ?? 0);
+          },
+        );
+        req.on("error", reject);
+        req.end();
+      });
+      expect(status).toBe(403);
+    }
+  });
+
+  it("does not validate /health", async () => {
+    const port = await startTestServer();
+
+    const res = await sendWithHeaders(port, { Host: "10.0.0.5" }, "/health");
+    expect(res.status).toBe(200);
+  });
+
+  it("skips validation on a non-loopback bind without allowedHosts", async () => {
+    const port = await startTestServer({ httpHost: "0.0.0.0" });
+
+    const res = await sendWithHeaders(port, { Host: "anything.example" });
+    expect(res.status).toBe(200);
+  });
+
+  it("validates on a non-loopback bind when allowedHosts is set", async () => {
+    const port = await startTestServer({
+      httpHost: "0.0.0.0",
+      allowedHosts: ["mcp.example"],
+    });
+
+    const ok = await sendWithHeaders(port, { Host: "mcp.example" });
+    expect(ok.status).toBe(200);
+    // Loopback names are not implied once the bind address is not loopback.
+    const rejected = await sendWithHeaders(port, { Host: "localhost" });
+    expect(rejected.status).toBe(403);
+  });
+});
+
+describe("resolveAllowedHosts", () => {
+  it("allows loopback names for loopback binds", () => {
+    for (const host of ["127.0.0.1", "localhost", "::1"]) {
+      expect(resolveAllowedHosts(host, [])).toEqual(
+        new Set(["localhost", "127.0.0.1", "[::1]"]),
+      );
+    }
+  });
+
+  it("adds extra hosts to the loopback set", () => {
+    expect(resolveAllowedHosts("127.0.0.1", ["mcp.example"])).toEqual(
+      new Set(["localhost", "127.0.0.1", "[::1]", "mcp.example"]),
+    );
+  });
+
+  it("returns only the listed hosts for non-loopback binds", () => {
+    expect(resolveAllowedHosts("0.0.0.0", ["mcp.example"])).toEqual(
+      new Set(["mcp.example"]),
+    );
+  });
+
+  it("returns undefined (validation off) for an unlisted non-loopback bind", () => {
+    expect(resolveAllowedHosts("0.0.0.0", [])).toBeUndefined();
+  });
+});
+
+describe("parseAllowedHosts", () => {
+  it("returns an empty list when unset or blank", () => {
+    expect(parseAllowedHosts(undefined)).toEqual([]);
+    expect(parseAllowedHosts(" ")).toEqual([]);
+  });
+
+  it("normalizes case, whitespace and ports", () => {
+    expect(
+      parseAllowedHosts(" MCP.Example , proxy.example:8443,[::1]:3000 "),
+    ).toEqual(["mcp.example", "proxy.example", "[::1]"]);
+  });
+
+  it("rejects entries that are not a hostname", () => {
+    expect(() => parseAllowedHosts("http://mcp.example")).toThrow(
+      /MCP_ALLOWED_HOSTS/,
+    );
+    expect(() => parseAllowedHosts("mcp.example/path")).toThrow(
+      /MCP_ALLOWED_HOSTS/,
+    );
   });
 });
